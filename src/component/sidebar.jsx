@@ -1,6 +1,14 @@
 import React from "react";
-import { X, LayoutDashboard, Wallet, ListOrdered, User } from "lucide-react";
+import {
+  X,
+  LayoutDashboard,
+  Wallet,
+  ListOrdered,
+  User,
+  Info,
+} from "lucide-react";
 import logo from "../assets/coin.png";
+import { info } from "autoprefixer";
 
 const SideBar = ({ isOpen, onClose, selectedPage, setSelectedPage }) => {
   return (
@@ -65,6 +73,18 @@ const SideBar = ({ isOpen, onClose, selectedPage, setSelectedPage }) => {
           active={selectedPage === "Profile"}
           onClick={() => {
             setSelectedPage("Profile");
+            if (window.innerWidth < 768) {
+              onClose();
+            }
+          }}
+        />
+
+        <SidebarLink
+          label="About Us"
+          icon={Info}
+          active={selectedPage === "About"}
+          onClick={() => {
+            setSelectedPage("About");
             if (window.innerWidth < 768) {
               onClose();
             }

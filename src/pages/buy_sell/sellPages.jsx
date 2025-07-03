@@ -82,13 +82,12 @@ const SellPages = () => {
                 <p className="text-md font-semibold">Gold Coin</p>
               </div>
             </div>
-            <div className="text-gray-400 text-xl">›</div>
           </div>
 
           {/* Sell Button */}
           <button
             onClick={handleSell}
-            className="w-full bg-blue-600 hover:bg-blue-700 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
+            className="w-full bg-red-600 hover:bg-red-700 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
           >
             Sell Now
           </button>

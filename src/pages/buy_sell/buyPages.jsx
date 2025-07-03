@@ -10,6 +10,7 @@ const BuyPages = () => {
   const [showUploadSection, setShowUploadSection] = useState(false);
   const [utrId, setUtrId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
+  const [loadingBuy, setLoadingBuy] = useState(false);
 
   const goldRate = 3.74;
   const presetAmounts = [100, 250, 500, 1000];
@@ -18,10 +19,14 @@ const BuyPages = () => {
   const uploadRef = useRef(null);
 
   const handleContinue = () => {
-    const result = amount * goldRate;
-    setTotalAmount(result.toFixed(2));
-    setShowSummary(true);
-    setShowUploadSection(false);
+    setLoadingBuy(true);
+    setTimeout(() => {
+      const result = amount * goldRate;
+      setTotalAmount(result.toFixed(2));
+      setShowSummary(true);
+      setShowUploadSection(false);
+      setLoadingBuy(false);
+    }, 1000);
   };
 
   useEffect(() => {
@@ -36,81 +41,100 @@ const BuyPages = () => {
     }
   }, [showUploadSection]);
 
+  const LoadingSpinner = () => (
+    <svg
+      className="animate-spin h-6 w-6 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        fill="currentColor"
+        d="M12 2a10 10 0 100 20v-2a8 8 0 118-8h2A10 10 0 0012 2z"
+      />
+    </svg>
+  );
+
   return (
     <div className="min-h-screen bg-gray-100 p-6 animate-slide-bounce">
-      {/* Cards Wrapper */}
-      <div
-        className={`flex "flex-col md:flex-row
-             "items-center justify-center gap-6 flex-wrap transition-all duration-300 md:mt-40`}
-      >
+      <div className="flex flex-col md:flex-row items-center justify-center gap-6 flex-wrap transition-all duration-300 md:mt-40">
         {/* Input Card */}
-        <div className="bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 text-center">
-          <h2 className="text-[30px] font-bold text-blue-800 mb-6">
-            Buy Gold Coins
-          </h2>
-          {/* Amount Input */}
-          <div className="flex justify-center items-center gap-2 mb-5">
-            <span className="text-[25px] font-medium">Number of Coins</span>
-          </div>
+        <div className="bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 text-center min-h-[600px] flex flex-col justify-between">
+          <div>
+            <h2 className="text-[30px] font-bold text-blue-800 mb-6">
+              Buy Gold Coins
+            </h2>
 
-          <div className="text-5xl font-bold mb-2">
-            <input
-              type="number"
-              min="10"
-              value={amount}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                if (value >= 10) {
-                  setAmount(value);
-                } else {
-                  alert("Minimum 10 coins required to proceed.");
-                  setAmount(10);
-                }
-              }}
-              className="text-center text-[30px] text-gray-700 bg-white border border-gray-300 rounded-md px-2 py-1 w-[150px] focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
+            <div className="flex justify-center items-center gap-2 mb-5">
+              <span className="text-[25px] font-medium">Number of Coins</span>
+            </div>
 
-          <div className="text-sm text-gray-500 flex justify-center items-center gap-1 mb-4">
-            <span>Rate: ₹{goldRate} per coin</span>
-            <FiRefreshCcw />
-          </div>
+            <div className="text-5xl font-bold mb-2">
+              <input
+                type="number"
+                min="10"
+                value={amount}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 10) {
+                    setAmount(value);
+                  } else {
+                    alert("Minimum 10 coins required to proceed.");
+                    setAmount(10);
+                  }
+                }}
+                className="text-center text-[30px] text-gray-700 bg-white border border-gray-300 rounded-md px-2 py-1 w-[150px] focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            {presetAmounts.map((amt) => (
-              <button
-                key={amt}
-                onClick={() => setAmount(amt)}
-                className={`py-2 rounded-full border font-medium transition duration-300 ease-in-out ${
-                  amount === amt
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-blue-300"
-                }`}
-              >
-                {amt}
-              </button>
-            ))}
-          </div>
+            <div className="text-sm text-gray-500 flex justify-center items-center gap-1 mb-4">
+              <span>Rate: ₹{goldRate} per coin</span>
+              <FiRefreshCcw />
+            </div>
 
-          <div className="flex items-center justify-between bg-gray-100 p-3 rounded-xl mb-6">
-            <div className="flex items-center space-x-2">
-              <div className="bg-blue-400 text-white p-2 rounded-full">
-                <FaCoins className="text-2xl" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm text-gray-500">Buy</p>
-                <p className="text-md font-semibold">Gold Coin</p>
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              {presetAmounts.map((amt) => (
+                <button
+                  key={amt}
+                  onClick={() => setAmount(amt)}
+                  className="w-full flex justify-center items-center gap-2 bg-blue-500 hover:bg-blue-600 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
+                >
+                  {amt}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between bg-gray-100 p-3 rounded-xl mb-6">
+              <div className="flex items-center space-x-2">
+                <div className="bg-blue-400 text-white p-2 rounded-full">
+                  <FaCoins className="text-2xl" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm text-gray-500">Buy</p>
+                  <p className="text-md font-semibold">Gold Coin</p>
+                </div>
               </div>
             </div>
-            <div className="text-gray-400 text-xl">›</div>
-          </div>
 
-          <button
-            onClick={handleContinue}
-            className="w-full bg-blue-500 hover:bg-blue-600 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
-          >
-            Continue
-          </button>
+            <button
+              onClick={handleContinue}
+              className={`w-full transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg ${
+                loadingBuy
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+              disabled={loadingBuy}
+            >
+              {loadingBuy ? (
+                <div className="flex justify-center items-center gap-2">
+                  <LoadingSpinner />
+                  Processing...
+                </div>
+              ) : (
+                "Continue"
+              )}
+            </button>
+          </div>
 
           <p className="text-xs text-gray-400 mt-4">
             Powered by <span className="font-semibold">VKT Gold Coin</span>
@@ -121,7 +145,7 @@ const BuyPages = () => {
         {showSummary && (
           <div
             ref={summaryRef}
-            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 animate-slide-bounce"
+            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 animate-slide-bounce min-h-[600px]"
           >
             <h2 className="text-2xl font-bold text-blue-800 mb-4">
               Purchase Summary
@@ -135,7 +159,7 @@ const BuyPages = () => {
             </div>
             <div className="bg-white p-4 rounded-xl shadow-md mb-4">
               <QRCode
-                value={`upi://pay?pa=7700818001@kotak811&pn=Vishal Kumar&am=${totalAmount}&cu=INR`}
+                value={`upi://pay?pa=9619638549-1@axl&pn=Vishal Kumar&am=${totalAmount}&cu=INR`}
                 size={160}
               />
             </div>
@@ -161,7 +185,7 @@ const BuyPages = () => {
                     "Are you sure you want to cancel this purchase?"
                   );
                   if (confirmed) {
-                    setAmount(0);
+                    setAmount(10);
                     setTotalAmount(null);
                     setShowSummary(false);
                     setShowUploadSection(false);
@@ -180,7 +204,7 @@ const BuyPages = () => {
         {showUploadSection && (
           <div
             ref={uploadRef}
-            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 animate-slide-bounce"
+            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 animate-slide-bounce min-h-[600px]"
           >
             <h2 className="text-xl font-bold text-blue-800 mb-10">
               Payment Confirmation

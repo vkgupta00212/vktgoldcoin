@@ -71,8 +71,10 @@ const UserProfile = () => {
               className="mt-4"
             >
               {openSections[section.id] && (
-                <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-                  {section.Component}
+                <div className="bg-gray-200 rounded-[15px] mt-6 p-4 md:p-8 md:w-full  mx-auto">
+                  <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+                    {section.Component}
+                  </div>
                 </div>
               )}
             </motion.div>

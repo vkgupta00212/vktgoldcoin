@@ -53,14 +53,20 @@ const Navbar = ({
           <TbGridDots className="w-[30px] h-[30px] to-black md:w-[50px] md:h-[50px]" />
         </button>
 
-        <img
-          src={logo}
-          alt="Logo"
-          className="w-[70px] h-[70px] md:w-[90px] md:h-[90px]"
-        />
-        <span className="text-2xl font-bold hidden sm:inline">
-          VKT Gold Coin
-        </span>
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => setSelectedPage("Dashboard")}
+        >
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-[70px] h-[70px] md:w-[90px] md:h-[90px]"
+          />
+
+          <span className="text-2xl font-bold hidden sm:inline">
+            VKT Gold Coin
+          </span>
+        </div>
       </div>
 
       {/* Right: Profile Dropdown */}

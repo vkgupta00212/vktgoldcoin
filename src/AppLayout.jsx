@@ -4,6 +4,8 @@ import Sidebar from "./component/sidebar.jsx";
 import HomePage from "./pages/Home/home.jsx";
 import ReferAndEarnPage from "./pages/sideBarPages/referandearn.jsx";
 import UserProfile from "./pages/sideBarPages/userProfile.jsx";
+import TransactionDetails from "./pages/sideBarPages/transaction.jsx";
+import AboutUs from "./pages/sideBarPages/aboutUs.jsx";
 
 const AppLayout = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -43,8 +45,9 @@ const AppLayout = () => {
             <HomePage setSelectedPage={setSelectedPage} />
           )}
           {selectedPage === "ReferEarn" && <ReferAndEarnPage />}
-          {selectedPage === "Transactions" && <div>Transactions Page</div>}
+          {selectedPage === "Transactions" && <TransactionDetails />}
           {selectedPage === "Profile" && <UserProfile />}
+          {selectedPage === "About" && <AboutUs />}
         </main>
       </div>
     </div>
