@@ -23,7 +23,6 @@ const UserProfile = () => {
     { id: 1, title: "Personal Details", Component: <PersonalDetailsh /> },
     { id: 2, title: "Adreess Details", Component: <AdressDetailsh /> },
     { id: 3, title: "Bank details", Component: <BankDetailsh /> },
-    { id: 4, title: "Personal Details", Component: <TransactionDetails /> },
   ];
 
   return (

@@ -20,6 +20,8 @@ function App() {
           <Route path="/buycoin" element={<BuyCoin />} />
           <Route path="/sellcoin" element={<SellCoin />} />
           <Route path="/profileside" element={<ProfilePage />} />
+
+          {/* Add more routes as needed */}
         </Routes>
       </div>
     </Router>

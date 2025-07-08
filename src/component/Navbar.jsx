@@ -4,29 +4,52 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/coin.png";
 import userImg from "../assets/user.png";
 import { TbGridDots } from "react-icons/tb";
-const Navbar = ({
-  onDrawerToggle,
-  isDrawerOpen,
-  selectedPage,
-  setSelectedPage,
-}) => {
+import getCustomerData from "../backend/detailsh/getCustomerData";
+
+const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
+  const Email = localStorage.getItem("userEmail");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef();
   const navigate = useNavigate();
+  const [UserDetailsh, setUserDetailsh] = useState({ name: "", mobile: "" });
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const res = await getCustomerData(Email);
+        console.log("API Response is", res);
+
+        if (Array.isArray(res) && res.length > 0) {
+          const user = res[0];
+          setUserDetailsh({
+            name: user.Name + " " + user.LastName,
+            mobile: user.Phone,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowDropdown(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    fetchUserDetails(); // ✅ Now it is defined correctly
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleOptionClick = (option) => {
     setShowDropdown(false);
     if (option === "Logout") {
+      localStorage.removeItem("userEmail");
       navigate("/login");
     }
     if (option === "Profile") {
@@ -83,7 +106,7 @@ const Navbar = ({
             alt="Avatar"
             className="w-[45px] h-[45px] rounded-full md:w-[50px] md:h-[50px]"
           />
-          <span className="text-[14px] md:text-lg">Vishal</span>
+          <span className="text-[14px] md:text-lg">{UserDetailsh.name}</span>
           <ChevronDown />
         </div>
 

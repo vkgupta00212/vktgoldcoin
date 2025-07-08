@@ -1,29 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/coin.png";
+import loginUser from "../../backend/login/loginAPI.js";
 
 const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const username = e.target.email.value.trim();
-    const password = e.target.password.value.trim();
+    const username = e.target.email.value;
+    const password = e.target.password.value;
 
-    if (!username || !password) {
-      setError("Enter username and password!");
-    } else {
-      setError("");
-      setLoading(true);
+    if (username === "" || password === "") {
+      setError("Please fill in all fields.");
+      return;
+    }
 
-      // Simulate login process
-      setTimeout(() => {
-        setLoading(false);
-        alert("Logged in successfully!");
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await loginUser(username, password);
+
+      const data = Array.isArray(result) ? result[0] : result;
+      if (data.Column1 != 0) {
+        console.log("✅ login successful", result);
+        localStorage.setItem("userEmail", username);
         navigate("/");
-      }, 2000);
+      } else {
+        setError("Invalid email or password.");
+        console.error("❌ login failed", err);
+      }
+    } catch (err) {
+      console.error("❌ login failed", err);
+      setError("Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,8 +55,12 @@ const LoginPage = () => {
     </svg>
   );
 
+  const registerUser = () => {
+    navigate("/register");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 animate-slide-bounce">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-[15px] shadow-md w-full max-w-md">
         <div className="flex flex-col items-center mb-4">
           <img
@@ -57,27 +75,26 @@ const LoginPage = () => {
             Log in to your account to continue
           </p>
         </div>
-        {/* Error Message */}
+
         {error && (
-          <p className="text-red-600 md:text-[18px] text-[13px] mt-10 bg-red-200 rounded-[10px] p-4 text-center animate-slide-bounce">
+          <p className="text-red-600 md:text-[18px] text-[13px] mt-10 bg-red-200 rounded-[10px] p-4 text-center">
             {error}
           </p>
         )}
-        {/* Login Form */}
-        <div className=" mt-10"></div>
-        <form onSubmit={handleSubmit}>
+
+        <form onSubmit={handleSubmit} className="mt-10">
           <div className="mb-4">
             <label
               className="block text-[16px] font-medium mb-2"
               htmlFor="email"
             >
-              Username
+              Email
             </label>
             <input
               type="email"
               id="email"
               name="email"
-              className="text-[17px] w-full p-2  border-b-2 border-b-blue-300 focus:outline-none focus:border-b-blue-500"
+              className="text-[17px] w-full p-2 border-b-2 border-b-blue-300 focus:outline-none focus:border-b-blue-500"
               placeholder="Enter your email"
             />
           </div>
@@ -105,20 +122,28 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-full transition-colors flex justify-center items-center gap-2
-    ${
-      loading
-        ? "bg-blue-400 cursor-not-allowed"
-        : "bg-blue-600 hover:bg-blue-700 text-white"
-    }`}
+            className={`w-full py-2 rounded-full transition-colors flex justify-center items-center gap-2 ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
           >
             {loading ? (
               <div className="flex items-center gap-2">
-                <LoadingSpinner /> <span>Loging in...</span>
+                <LoadingSpinner /> <span>Logging in...</span>
               </div>
             ) : (
               "Login"
             )}
+          </button>
+
+          <button onClick={registerUser} className="w-full mt-4">
+            <div className="mt-4 text-center">
+              <span className="text-[16px] text-gray-600">
+                Don't have an account?{" "}
+                <a className="text-blue-600 hover:underline">Register here</a>
+              </span>
+            </div>
           </button>
         </form>
       </div>

@@ -1,379 +1,234 @@
+// src/pages/Register.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/coin.png";
+import registerAPI from "../../backend/register/Register.js";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    ReferId: "",
-    ReferCandidateName: "",
-    fullName: "",
-    mobile: "",
-    title: "",
-    dob: "",
-    gender: "",
-    houseNum: "",
-    area: "",
-    landmark: "",
-    state: "",
-    district: "",
-    City: "",
-    pinCode: "",
-    favFest: "",
+    Name: "",
+    LastName: "",
+    Email: "",
+    Password: "",
+    ConfirmPassword: "",
+    Gender: "",
+    Dob: "",
+    Phone: "",
+    AadharCard: "",
+    PenCard: "",
+    ReferFriend: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
-    if (!formData.ReferId) newErrors.ReferId = "Required";
-    if (!formData.ReferCandidateName) newErrors.ReferCandidateName = "Required";
-    if (!formData.fullName) newErrors.fullName = "Required";
-    if (!formData.mobile) newErrors.mobile = "Required";
-    if (!formData.dob) newErrors.dob = "Required";
-    if (!formData.gender) newErrors.gender = "Required";
-    if (!formData.houseNum) newErrors.houseNum = "Required";
-    if (!formData.area) newErrors.area = "Required";
-    if (!formData.landmark) newErrors.landmark = "Required";
-    if (!formData.state) newErrors.state = "Required";
-    if (!formData.district) newErrors.district = "Required";
-    if (!formData.City) newErrors.City = "Required";
-    if (!formData.pinCode) newErrors.pinCode = "Required";
-    if (!formData.favFest) newErrors.favFest = "Required";
+    if (!formData.Name) newErrors.Name = true;
+    if (!formData.Email || !formData.Email.includes("@"))
+      newErrors.Email = true;
+    if (!formData.Phone || formData.Phone.length !== 10) newErrors.Phone = true;
+    if (!formData.Password) newErrors.Password = true;
+    if (formData.Password !== formData.ConfirmPassword)
+      newErrors.ConfirmPassword = true;
 
-    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
-    if (Object.keys(newErrors).length === 0) {
-      alert("Submitted!");
+    setSubmitting(true);
+
+    try {
+      const response = await registerAPI(
+        formData.Name,
+        formData.LastName,
+        formData.Email,
+        formData.Password,
+        formData.Gender,
+        formData.Dob,
+        formData.Phone,
+        formData.AadharCard,
+        formData.PenCard,
+        formData.ReferFriend
+      );
+      alert(response || "Registered successfully!");
+      navigate("/login");
+    } catch (err) {
+      alert(err.message || "Registration failed. Try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#1e293b] flex flex-col items-center justify-center p-6 animate-slide-bounce">
-      <div className="rounded shadow p-6 md:w-[1300px] flex flex-col items-center mb-6">
-        <img
-          src={logo}
-          alt="Logo"
-          className="md:h-20 md:w-20 mb-2 h-[120px] w-[120px]"
-        />
-        <h2 className="md:text-[2.5rem] font-semibold text-white text-[25px]">
-          VKT GOLD COIN
-        </h2>
-        <p className="md:text-[1.2rem] text-[15px] text-white mt-1">
-          Register New User
-        </p>
-      </div>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded shadow p-6 space-y-6 w-full max-w-[1300px]"
-      >
-        {/* Refral Details */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">
-            Refrel Details
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Refer ID
-              </label>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
+      <div className="bg-white p-6 md:p-10 rounded-[15px] shadow-md w-full max-w-2xl">
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src={logo}
+            alt="Logo"
+            className="h-20 w-20 md:h-24 md:w-24 mb-2"
+          />
+          <h2 className="text-2xl md:text-3xl font-bold">VKT GOLD COIN</h2>
+          <p className="text-gray-500">Register to continue</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium">First Name</label>
               <input
-                type="text"
-                name="ReferId"
-                value={formData.ReferId}
+                name="Name"
+                value={formData.Name}
                 onChange={handleChange}
-                className={`w-full border ${
-                  errors.ReferId ? "border-red-500" : "border-gray-300"
-                } p-2 rounded`}
+                className={`w-full p-2 border rounded ${
+                  errors.Name ? "border-red-500" : "border-gray-300"
+                }`}
               />
             </div>
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Referal Candidate Name
-              </label>
+            <div className="flex-1">
+              <label className="text-sm font-medium">Last Name</label>
               <input
-                type="text"
-                name="ReferCandidateName"
-                value={formData.ReferCandidateName}
+                name="LastName"
+                value={formData.LastName}
                 onChange={handleChange}
-                className={`w-full border ${
-                  errors.ReferCandidateName
-                    ? "border-red-500"
-                    : "border-gray-300"
-                } p-2 rounded`}
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
           </div>
-        </div>
 
-        {/* Associate Details */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">
-            Associate Details
-          </h2>
-
-          <div className="flex flex-wrap gap-6">
-            {/* Title & Full Name */}
-            <div className="flex flex-col md:w-[49%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Title & Full Name
-              </label>
-              <div className="flex gap-2">
-                <select
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="border border-gray-300 p-2 rounded w-[100px]"
-                >
-                  <option value="">Title</option>
-                  <option value="Mr.">Mr</option>
-                  <option value="Mrs.">Ms</option>
-                </select>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.fullName ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="Full Name"
-                />
-              </div>
-            </div>
-
-            {/* Mobile Number */}
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Mobile Number
-              </label>
-              <div className="flex gap-2">
-                <span className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-l w-[100px] text-center">
-                  IN +91
-                </span>
-                <input
-                  type="number"
-                  name="mobile"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.mobile ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded-r`}
-                  placeholder="Enter Mobile Number"
-                />
-              </div>
+          <div>
+            <label className="text-sm font-medium">Mobile Number</label>
+            <div className="flex">
+              <span className="bg-gray-100 border p-2 rounded-l">+91</span>
+              <input
+                name="Phone"
+                type="text"
+                value={formData.Phone}
+                onChange={handleChange}
+                className={`flex-1 p-2 border rounded-r ${
+                  errors.Phone ? "border-red-500" : "border-gray-300"
+                }`}
+              />
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-6 mt-6">
-            {/* Date of Birth */}
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Date of Birth
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  name="dob"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  className="border border-gray-300 p-2 rounded"
-                />
-              </div>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium">Gender</label>
+              <select
+                name="Gender"
+                value={formData.Gender}
+                onChange={handleChange}
+                className="w-full p-2 border rounded border-gray-300"
+              >
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
-
-            {/* Gender */}
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Gender
-              </label>
-              <div className="flex gap-2">
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  className="border border-gray-300 p-2 rounded w-[250px]"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Adress Details */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">Adress</h2>
-
-          <div className="flex flex-wrap gap-6">
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                House No./Flat No./Apartment and Street
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="houseNum"
-                  value={formData.houseNum}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.houseNum ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="House No./Flat No./Apartment and Street"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col w-[48%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Area/Village
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="area"
-                  value={formData.area}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.area ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="Area/Village"
-                />
-              </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium">DOB</label>
+              <input
+                name="Dob"
+                type="date"
+                value={formData.Dob}
+                onChange={handleChange}
+                className="w-full p-2 border rounded border-gray-300"
+              />
             </div>
           </div>
 
-          <div className="flex mt-6 flex-wrap gap-6">
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Landmark
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="landmark"
-                  value={formData.landmark}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.landmark ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="Landmark"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="text-sm font-medium">Email</label>
+            <input
+              name="Email"
+              type="email"
+              value={formData.Email}
+              onChange={handleChange}
+              className={`w-full p-2 border rounded ${
+                errors.Email ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+          </div>
 
-            <div className="flex flex-col w-[48%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                State
-              </label>
-              <div className="flex gap-2">
-                <select
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="border border-gray-300 p-2 rounded w-[250px]"
-                >
-                  <option value="Bihar">Bihar</option>
-                  <option value="Jharkhand">Jharkhand</option>
-                  <option value="Delhi">Delhi</option>
-                </select>
-              </div>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium">Password</label>
+              <input
+                name="Password"
+                type="password"
+                value={formData.Password}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded ${
+                  errors.Password ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium">Confirm Password</label>
+              <input
+                name="ConfirmPassword"
+                type="password"
+                value={formData.ConfirmPassword}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded ${
+                  errors.ConfirmPassword ? "border-red-500" : "border-gray-300"
+                }`}
+              />
             </div>
           </div>
 
-          <div className="flex mt-6 flex-wrap gap-6">
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                District
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="district"
-                  value={formData.district}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.district ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="District"
-                />
-              </div>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium">Aadhar Card</label>
+              <input
+                name="AadharCard"
+                value={formData.AadharCard}
+                onChange={handleChange}
+                className="w-full p-2 border rounded border-gray-300"
+              />
             </div>
-
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                City
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="City"
-                  value={formData.City}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.City ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="City"
-                />
-              </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium">PAN Card</label>
+              <input
+                name="PenCard"
+                value={formData.PenCard}
+                onChange={handleChange}
+                className="w-full p-2 border rounded border-gray-300"
+              />
             </div>
           </div>
 
-          <div className="flex mt-6 flex-wrap gap-6">
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Pin Code
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="Number"
-                  name="pinCode"
-                  value={formData.pinCode}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.pinCode ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder="Pin Code"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col md:w-[48%] w-[100%]">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Favourite Festival
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="favFest"
-                  value={formData.favFest}
-                  onChange={handleChange}
-                  className={`flex-1 border ${
-                    errors.favFest ? "border-red-500" : "border-gray-300"
-                  } p-2 rounded`}
-                  placeholder=" Favourite Festival"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="text-sm font-medium">Refer Friend</label>
+            <input
+              name="ReferFriend"
+              value={formData.ReferFriend}
+              onChange={handleChange}
+              className="w-full p-2 border rounded border-gray-300"
+            />
           </div>
-        </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-center">
           <button
             type="submit"
-            className="w-full rounded-full bg-blue-600 hover:bg-blue-700 md:mt-11 mt-1 text-white font-medium px-6 py-2 shadow-md transition duration-200"
+            disabled={submitting}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 font-semibold rounded-full transition"
           >
-            SUBMIT
+            {submitting ? "Submitting..." : "Submit"}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
