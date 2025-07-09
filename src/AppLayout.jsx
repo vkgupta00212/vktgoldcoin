@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./component/Navbar.jsx";
 import Sidebar from "./component/sidebar.jsx";
 import HomePage from "./pages/Home/home.jsx";
@@ -10,6 +10,24 @@ import AboutUs from "./pages/sideBarPages/aboutUs.jsx";
 const AppLayout = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState("Dashboard");
+
+  useEffect(() => {
+    const preventGoBack = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    preventGoBack();
+
+    const onPopState = () => {
+      preventGoBack(); // Re-push current state on back
+    };
+
+    window.addEventListener("popstate", onPopState);
+
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -46,6 +64,7 @@ const AppLayout = () => {
           )}
           {selectedPage === "ReferEarn" && <ReferAndEarnPage />}
           {selectedPage === "Transactions" && <TransactionDetails />}
+          {selectedPage === "Wallet" && <div>Wallet</div>}
           {selectedPage === "Profile" && <UserProfile />}
           {selectedPage === "About" && <AboutUs />}
         </main>

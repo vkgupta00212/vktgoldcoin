@@ -14,7 +14,7 @@ const ProfileCard = ({ setSelectedPage }) => {
         if (Array.isArray(res) && res.length > 0) {
           const user = res[0];
           setUserDetails({
-            name: user.Name + " " + user.LastName,
+            name: user.Name,
             mobile: user.Phone,
           });
         }
@@ -39,6 +39,7 @@ const ProfileCard = ({ setSelectedPage }) => {
         <p className="md:text-[23px] mt-2">
           Mobile No.: {userDetails.mobile || "Loading..."}
         </p>
+        <p className="md:text-[23px] mt-2">Refered: {"Loading..."}</p>
         <div className="mt-4 flex justify-center gap-4 flex-wrap">
           <button
             onClick={handlePageChange}

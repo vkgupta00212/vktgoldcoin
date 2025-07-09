@@ -1,4 +1,3 @@
-// src/pages/Register.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/coin.png";
@@ -8,7 +7,6 @@ const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     Name: "",
-    LastName: "",
     Email: "",
     Password: "",
     ConfirmPassword: "",
@@ -50,7 +48,6 @@ const Register = () => {
     try {
       const response = await registerAPI(
         formData.Name,
-        formData.LastName,
         formData.Email,
         formData.Password,
         formData.Gender,
@@ -60,10 +57,10 @@ const Register = () => {
         formData.PenCard,
         formData.ReferFriend
       );
-      alert(response || "Registered successfully!");
+      alert("✅ Registered successfully!");
       navigate("/login");
     } catch (err) {
-      alert(err.message || "Registration failed. Try again.");
+      alert(err.message || "❌ Registration failed. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -83,27 +80,16 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium">First Name</label>
-              <input
-                name="Name"
-                value={formData.Name}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded ${
-                  errors.Name ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="text-sm font-medium">Last Name</label>
-              <input
-                name="LastName"
-                value={formData.LastName}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
+          <div>
+            <label className="text-sm font-medium">Full Name</label>
+            <input
+              name="Name"
+              value={formData.Name}
+              onChange={handleChange}
+              className={`w-full p-2 border rounded ${
+                errors.Name ? "border-red-500" : "border-gray-300"
+              }`}
+            />
           </div>
 
           <div>
@@ -211,7 +197,7 @@ const Register = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Refer Friend</label>
+            <label className="text-sm font-medium">Refer Code (optional)</label>
             <input
               name="ReferFriend"
               value={formData.ReferFriend}

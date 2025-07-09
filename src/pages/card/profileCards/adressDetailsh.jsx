@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdressInsert from "../../../backend/adress/AdressAPI.js";
+import updateAdress from "../../../backend/adress/updateAdress.js";
 import AdressShow from "../../../backend/adress/AdressShowAPI.js";
 
 const AdressDetailsh = () => {
@@ -68,20 +69,31 @@ const AdressDetailsh = () => {
     try {
       if (isNewEntry) {
         await AdressInsert(
-          "Permanent", // Addresstype (can be "Home", "Permanent", etc.)
-          editedDetails.village || "", // AddressLine1 (you are storing village here)
-          editedDetails.village || "", // AddressLine2 (repeat or split if needed)
-          editedDetails.City || "", // City
-          editedDetails.State || "", // State
-          editedDetails.Country || "", // Country
-          editedDetails.Pincode || "", // Pincode
+          "Permanent",
+          editedDetails.village || "",
+          editedDetails.village || "",
+          editedDetails.City || "",
+          editedDetails.State || "",
+          editedDetails.Country || "",
+          editedDetails.Pincode || "",
           phone,
           email
         );
-
         alert("✅ Address details inserted successfully!");
       } else {
-        alert("✏️ Edit feature not yet connected to backend.");
+        // 🆕 Call update API
+        await updateAdress(
+          "Permanent",
+          editedDetails.village || "",
+          editedDetails.village || "",
+          editedDetails.City || "",
+          editedDetails.State || "",
+          editedDetails.Country || "",
+          editedDetails.Pincode || "",
+          phone,
+          email
+        );
+        alert("✏️ Address details updated successfully!");
       }
 
       setIsEditing(false);

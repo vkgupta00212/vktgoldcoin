@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import getCustomerData from "../../../backend/detailsh/getCustomerData";
+import updateUserDetailsh from "../../../backend/detailsh/updateUserDetailsh";
 
 const PersonalDetailsh = () => {
   const email = localStorage.getItem("userEmail");
@@ -22,7 +23,7 @@ const PersonalDetailsh = () => {
         if (Array.isArray(res) && res.length > 0) {
           const user = res[0];
           const userData = {
-            name: user.Name + " " + user.LastName,
+            name: user.Name,
             mobile: user.Phone,
             Adhar: user.AadharCard,
             email: user.Email,
@@ -46,10 +47,22 @@ const PersonalDetailsh = () => {
     setEditedDetails((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = () => {
-    setUserDetailsh(editedDetails); // Update view with new values
-    setIsEditing(false);
-    // TODO: Optionally send editedDetails to backend API
+  const handleSave = async () => {
+    try {
+      await updateUserDetailsh(
+        editedDetails.name || "", // Name
+        editedDetails.email || "", // Email
+        editedDetails.mobile || "" // Phone
+      );
+
+      alert("✅ User details updated successfully!");
+
+      setUserDetailsh(editedDetails); // Update the UI
+      setIsEditing(false); // Exit edit mode
+    } catch (error) {
+      console.error("Update failed:", error.message);
+      alert("❌ Failed to update user details. Please try again.");
+    }
   };
 
   const handleCancel = () => {
@@ -113,12 +126,20 @@ const PersonalDetailsh = () => {
             >
               <div className="flex items-start justify-start">{item.label}</div>
               <div className="flex items-start justify-start">
-                <input
-                  type="text"
-                  value={editedDetails[item.key] || ""}
-                  onChange={(e) => handleInputChange(item.key, e.target.value)}
-                  className="w-full border px-2 py-1 rounded-md text-[16px]"
-                />
+                {["name", "mobile"].includes(item.key) ? (
+                  <input
+                    type="text"
+                    value={editedDetails[item.key] || ""}
+                    onChange={(e) =>
+                      handleInputChange(item.key, e.target.value)
+                    }
+                    className="w-full border px-2 py-1 rounded-md text-[16px]"
+                  />
+                ) : (
+                  <span className="text-[16px] text-gray-600">
+                    {editedDetails[item.key] || "-"}
+                  </span>
+                )}
               </div>
             </div>
           ))}

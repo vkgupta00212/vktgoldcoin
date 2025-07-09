@@ -2,7 +2,6 @@ import axios from "axios";
 
 const registerAPI = async (
   Name,
-  LastName,
   Email,
   Password,
   Gender,
@@ -10,12 +9,11 @@ const registerAPI = async (
   Phone,
   AadharCard,
   PenCard,
-  ReferFriend,
+  ReferFriend
 ) => {
   const formData = new URLSearchParams();
   formData.append("token", "ALJDFHAGEJJJKL");
   formData.append("Name", Name);
-  formData.append("LastName", LastName);
   formData.append("Email", Email);
   formData.append("Password", Password);
   formData.append("Gender", Gender);
@@ -23,7 +21,7 @@ const registerAPI = async (
   formData.append("Phone", Phone);
   formData.append("AadharCard", AadharCard);
   formData.append("PenCard", PenCard);
-  formData.append("RefferFriend", ReferFriend); // ✅ Fixed spelling
+  formData.append("RefferFriend", ReferFriend); // ✅ match your backend key
 
   try {
     const response = await axios.post(
@@ -36,13 +34,10 @@ const registerAPI = async (
       }
     );
 
-    const res = response.data;
-    console.log(res);
-    return res;
+    return response.data;
   } catch (error) {
     console.error("❌ API error:", error.message);
     throw new Error("Registration failed. Please try again.");
   }
 };
-
 export default registerAPI;

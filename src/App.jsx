@@ -7,23 +7,58 @@ import MainPage from "./AppLayout.jsx";
 import BuyCoin from "./pages/buy_sell/buyPages.jsx";
 import SellCoin from "./pages/buy_sell/sellPages.jsx";
 import ProfilePage from "./pages/sideBarPages/userProfile.jsx";
+import ProtectedRoute from "./pages/login/privateRoute.jsx"; // new import
 
 function App() {
   return (
     <Router>
-      <div>
-        <Routes>
-          <Route path="/" element={<MainPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/sidebar" element={<Sidebar />} />
-          <Route path="/buycoin" element={<BuyCoin />} />
-          <Route path="/sellcoin" element={<SellCoin />} />
-          <Route path="/profileside" element={<ProfilePage />} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          {/* Add more routes as needed */}
-        </Routes>
-      </div>
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <MainPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sidebar"
+          element={
+            <ProtectedRoute>
+              <Sidebar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/buycoin"
+          element={
+            <ProtectedRoute>
+              <BuyCoin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sellcoin"
+          element={
+            <ProtectedRoute>
+              <SellCoin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profileside"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </Router>
   );
 }

@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaMinus } from "react-icons/fa";
 import ReferAndEarnCard from "../card/referandearn/referandearnCard.jsx";
+import ReferAndEarnCard2 from "../card/referandearn/referandearn2.jsx";
+import ReferAndEarnCard3 from "../card/referandearn/referandearn3.jsx";
+import ReferAndEarnCard4 from "../card/referandearn/referandearn4.jsx";
+import ReferAndEarnCard5 from "../card/referandearn/referandearn5.jsx";
+import ReferAndEarnCard6 from "../card/referandearn/referandearn6.jsx";
 
 const ReferAndEarn = () => {
   const [openSections, setOpenSections] = useState({});
@@ -16,10 +21,12 @@ const ReferAndEarn = () => {
 
   // Define all sections here
   const sections = [
-    { id: 1, title: "1st Target - Refer & Earn" },
-    { id: 2, title: "2nd Target - Invite & Win" },
-    { id: 3, title: "3rd Target - Boost Program" },
-    { id: 4, title: "4th Target - Rewards Zone" },
+    { id: 1, title: "First Target", Component: <ReferAndEarnCard /> },
+    { id: 2, title: "Second Target", Component: <ReferAndEarnCard2 /> },
+    { id: 3, title: "Third Target", Component: <ReferAndEarnCard3 /> },
+    { id: 4, title: "Fourth Target", Component: <ReferAndEarnCard4 /> },
+    { id: 5, title: "Fifth Target", Component: <ReferAndEarnCard5 /> },
+    { id: 6, title: "Sixth Target", Component: <ReferAndEarnCard6 /> },
   ];
 
   return (
@@ -68,7 +75,7 @@ const ReferAndEarn = () => {
             >
               {openSections[section.id] && (
                 <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-                  <ReferAndEarnCard />
+                  {section.Component}
                 </div>
               )}
             </motion.div>

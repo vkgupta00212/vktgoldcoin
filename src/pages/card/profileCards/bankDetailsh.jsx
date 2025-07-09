@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import bankDetailshShowAPI from "../../../backend/bank/bankDetailsh";
 import BankDetailshInsert from "../../../backend/bank/bankDetailshInsert";
+import BankDetailshUpdate from "../../../backend/bank/bankDetailshUpdate.js";
 
 const BankDetailsh = () => {
   const email = localStorage.getItem("userEmail") || "";
@@ -80,8 +81,16 @@ const BankDetailsh = () => {
         );
         alert("✅ Bank details inserted successfully!");
       } else {
-        // Update logic placeholder (if needed)
-        alert("Edit feature not yet connected to backend.");
+        await BankDetailshUpdate(
+          editedDetails.accountNumber || "",
+          editedDetails.bankIFSC || "",
+          editedDetails.branchName || "",
+          editedDetails.accountHolderName || "",
+          editedDetails.bankName || "",
+          phone,
+          email
+        );
+        alert("✅ Bank details updated successfully!");
       }
 
       setIsEditing(false);

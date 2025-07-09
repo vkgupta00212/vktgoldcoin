@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaCoins } from "react-icons/fa";
 import { FiRefreshCcw } from "react-icons/fi";
 import QRCode from "react-qr-code";
+import TransactionHistory from "../../backend/transactionHistory/transactionHistory.js";
 
 const BuyPages = () => {
   const [amount, setAmount] = useState(10);
@@ -12,7 +13,7 @@ const BuyPages = () => {
   const [screenshot, setScreenshot] = useState(null);
   const [loadingBuy, setLoadingBuy] = useState(false);
 
-  const goldRate = 3.74;
+  const goldRate = 300;
   const presetAmounts = [100, 250, 500, 1000];
 
   const summaryRef = useRef(null);
@@ -55,11 +56,46 @@ const BuyPages = () => {
     </svg>
   );
 
+  const handlesubmit = async () => {
+    if (!utrId) {
+      alert("Please upload screenshot and enter UTR ID.");
+      return;
+    }
+
+    const email = localStorage.getItem("userEmail");
+
+    try {
+      const currentDate = new Date().toISOString();
+
+      await TransactionHistory({
+        TransactionID: utrId,
+        TransactionAmt: totalAmount,
+        TransactionPurpose: "Buy Gold Coin",
+        TransactionType: "Credit",
+        Status: "Pending",
+        TDate: currentDate,
+        Accountnumber: "0000000000", // 🔁 Replace with real account if available
+        IFSC: "IFSC000000", // 🔁 Replace with actual IFSC
+        Branch: "VKT Digital Branch",
+        Email: email,
+      });
+
+      alert("Transaction submitted successfully!");
+      setShowUploadSection(false);
+      setShowSummary(false);
+      setUtrId("");
+      setScreenshot(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit transaction.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6 animate-slide-bounce">
-      <div className="flex flex-col md:flex-row items-center justify-center gap-6 flex-wrap transition-all duration-300 md:mt-40">
+      <div className="flex flex-col md:flex-row items-center justify-center gap-6 flex-wrap transition-all duration-300 md:mt-[40px]">
         {/* Input Card */}
-        <div className="bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 text-center min-h-[600px] flex flex-col justify-between">
+        <div className="bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[400px] mx-auto md:mx-0 text-center min-h-[600px] flex flex-col justify-between">
           <div>
             <h2 className="text-[30px] font-bold text-blue-800 mb-6">
               Buy Gold Coins
@@ -145,7 +181,7 @@ const BuyPages = () => {
         {showSummary && (
           <div
             ref={summaryRef}
-            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 animate-slide-bounce min-h-[600px]"
+            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[400px] mx-auto md:mx-0 animate-slide-bounce min-h-[600px]"
           >
             <h2 className="text-2xl font-bold text-blue-800 mb-4">
               Purchase Summary
@@ -204,7 +240,7 @@ const BuyPages = () => {
         {showUploadSection && (
           <div
             ref={uploadRef}
-            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[500px] mx-auto md:mx-0 animate-slide-bounce min-h-[600px]"
+            className="flex flex-col items-center justify-center bg-blue-100 p-6 rounded-3xl shadow-xl w-full max-w-[400px] mx-auto md:mx-0 animate-slide-bounce min-h-[600px]"
           >
             <h2 className="text-xl font-bold text-blue-800 mb-10">
               Payment Confirmation
@@ -232,15 +268,7 @@ const BuyPages = () => {
             />
 
             <button
-              onClick={() => {
-                if (!utrId || !screenshot) {
-                  alert("Please upload screenshot and enter UTR ID.");
-                } else {
-                  alert("Submitted successfully!");
-                  setShowUploadSection(false);
-                  setShowSummary(false);
-                }
-              }}
+              onClick={() => handlesubmit()}
               className="mt-10 w-full bg-blue-500 hover:bg-blue-600 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
             >
               Submit Details

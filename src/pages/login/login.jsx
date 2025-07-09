@@ -28,7 +28,7 @@ const LoginPage = () => {
       if (data.Column1 != 0) {
         console.log("✅ login successful", result);
         localStorage.setItem("userEmail", username);
-        navigate("/");
+        navigate("/", { replace: true }); // ✅ Use replace
       } else {
         setError("Invalid email or password.");
         console.error("❌ login failed", err);
@@ -60,7 +60,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 animate-slide-bounce">
       <div className="bg-white p-8 rounded-[15px] shadow-md w-full max-w-md">
         <div className="flex flex-col items-center mb-4">
           <img
