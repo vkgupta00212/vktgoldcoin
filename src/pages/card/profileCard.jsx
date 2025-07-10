@@ -39,7 +39,7 @@ const ProfileCard = ({ setSelectedPage }) => {
         <p className="md:text-[23px] mt-2">
           Mobile No.: {userDetails.mobile || "Loading..."}
         </p>
-        <p className="md:text-[23px] mt-2">Refered: {"Loading..."}</p>
+        <p className="md:text-[23px] mt-2">Refered: {"0"}</p>
         <div className="mt-4 flex justify-center gap-4 flex-wrap">
           <button
             onClick={handlePageChange}

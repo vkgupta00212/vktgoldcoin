@@ -1,8 +1,7 @@
-// src/backend/transaction/TransactionHistory.js
+// /backend/transactionHistory/TransactionHistoryInsert.js
 import axios from "axios";
 
-const TransactionHistory = async ({
-  TransactionID,
+const TransactionHistoryInsert = async (
   TransactionAmt,
   TransactionPurpose,
   TransactionType,
@@ -11,25 +10,29 @@ const TransactionHistory = async ({
   Accountnumber,
   IFSC,
   Branch,
-  Email,
-}) => {
+  Timages, // should be a base64 string or just a dummy string
+  Coin,
+  Email
+) => {
   const formData = new URLSearchParams();
 
-  formData.append("token", "ALJDFHAGEJJJKL"); // Replace with your actual token
-  formData.append("TransactionID", TransactionID || "");
-  formData.append("TransactionAmt", TransactionAmt || "");
-  formData.append("TransactionPurpose", TransactionPurpose || "");
-  formData.append("TransactionType", TransactionType || "");
-  formData.append("Status", Status || "");
-  formData.append("TDate", TDate || "");
-  formData.append("Accountnumber", Accountnumber || "");
-  formData.append("IFSC", IFSC || "");
-  formData.append("Branch", Branch || "");
-  formData.append("Email", Email || "");
+  // Append values safely (convert to string to avoid [object Object] errors)
+  formData.append("token", "ALJDFHAGEJJJKL");
+  formData.append("TransactionAmt", String(TransactionAmt || ""));
+  formData.append("TransactionPurpose", String(TransactionPurpose || ""));
+  formData.append("TransactionType", String(TransactionType || ""));
+  formData.append("Status", String(Status || ""));
+  formData.append("TDate", String(TDate || new Date().toISOString()));
+  formData.append("Accountnumber", String(Accountnumber || ""));
+  formData.append("IFSC", String(IFSC || ""));
+  formData.append("Branch", String(Branch || ""));
+  formData.append("Timages", String(Timages || "")); // dummy base64 or filename
+  formData.append("Coin", String(Coin || ""));
+  formData.append("Email", String(Email || ""));
 
   try {
     const response = await axios.post(
-      "https://vkt.anklegaming.live/APIs/APIs.asmx/TransactionHistorys", // Update this with the correct endpoint if different
+      "https://vkt.anklegaming.live/APIs/APIs.asmx/TransactionHistorys",
       formData,
       {
         headers: {
@@ -38,12 +41,11 @@ const TransactionHistory = async ({
       }
     );
 
-    console.log("✅ Transaction saved:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error while posting transaction:", error.message);
+    console.error("❌ Transaction API Error:", error.message);
     throw new Error("Transaction submission failed.");
   }
 };
 
-export default TransactionHistory;
+export default TransactionHistoryInsert;

@@ -55,30 +55,42 @@ const BuyPages = () => {
       />
     </svg>
   );
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = reader.result.split(",")[1]; // remove `data:image/...;base64,`
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const handlesubmit = async () => {
-    if (!utrId) {
-      alert("Please upload screenshot and enter UTR ID.");
-      return;
-    }
-
     const email = localStorage.getItem("userEmail");
+    const currentDate = new Date().toISOString();
 
     try {
-      const currentDate = new Date().toISOString();
+      let imageBase64 = "";
+      if (screenshot) {
+        imageBase64 = await convertToBase64(screenshot);
+      }
 
-      await TransactionHistory({
-        TransactionID: utrId,
-        TransactionAmt: totalAmount,
-        TransactionPurpose: "Buy Gold Coin",
-        TransactionType: "Credit",
-        Status: "Pending",
-        TDate: currentDate,
-        Accountnumber: "0000000000", // 🔁 Replace with real account if available
-        IFSC: "IFSC000000", // 🔁 Replace with actual IFSC
-        Branch: "VKT Digital Branch",
-        Email: email,
-      });
+      // Call the API with all required fields
+      await TransactionHistory(
+        totalAmount,
+        "Buy Gold Coin",
+        "Buy",
+        "Pending",
+        currentDate,
+        "0000000000",
+        "IFSC000000",
+        "VKT Digital Branch",
+        imageBase64,
+        amount,
+        email
+      );
 
       alert("Transaction submitted successfully!");
       setShowUploadSection(false);
@@ -86,7 +98,7 @@ const BuyPages = () => {
       setUtrId("");
       setScreenshot(null);
     } catch (err) {
-      console.error(err);
+      console.error("Transaction submit error:", err);
       alert("Failed to submit transaction.");
     }
   };
