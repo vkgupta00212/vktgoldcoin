@@ -66,30 +66,40 @@ const AdressDetailsh = () => {
     setIsNewEntry(false);
   };
   const handleSave = async () => {
+    // Validate all required fields
+    const requiredFields = ["village", "City", "State", "Pincode", "Country"];
+    const emptyFields = requiredFields.filter(
+      (key) => !editedDetails[key] || editedDetails[key].trim() === ""
+    );
+
+    if (emptyFields.length > 0) {
+      alert("⚠️ Please fill all required fields before saving.");
+      return;
+    }
+
     try {
       if (isNewEntry) {
         await AdressInsert(
           "Permanent",
-          editedDetails.village || "",
-          editedDetails.village || "",
-          editedDetails.City || "",
-          editedDetails.State || "",
-          editedDetails.Country || "",
-          editedDetails.Pincode || "",
+          editedDetails.village,
+          editedDetails.village,
+          editedDetails.City,
+          editedDetails.State,
+          editedDetails.Country,
+          editedDetails.Pincode,
           phone,
           email
         );
         alert("✅ Address details inserted successfully!");
       } else {
-        // 🆕 Call update API
         await updateAdress(
           "Permanent",
-          editedDetails.village || "",
-          editedDetails.village || "",
-          editedDetails.City || "",
-          editedDetails.State || "",
-          editedDetails.Country || "",
-          editedDetails.Pincode || "",
+          editedDetails.village,
+          editedDetails.village,
+          editedDetails.City,
+          editedDetails.State,
+          editedDetails.Country,
+          editedDetails.Pincode,
           phone,
           email
         );
@@ -147,7 +157,7 @@ const AdressDetailsh = () => {
               onClick={handleAddInfoClick}
               className="bg-blue-600 text-white px-6 py-2 rounded-full shadow text-[18px] hover:bg-blue-700"
             >
-              ➕ Add Bank Information
+              ➕ Add Adress Information
             </button>
           </div>
         )
@@ -155,7 +165,7 @@ const AdressDetailsh = () => {
         <>
           <div className="grid grid-cols-2 font-semibold border-b pb-2 px-4 text-[20px] md:text-[22px]">
             <div className="flex items-start justify-start">
-              {isNewEntry ? "Add Bank Details" : "Edit Bank Details"}
+              {isNewEntry ? "Add Adress Details" : "Edit Adress Details"}
             </div>
             <div className="flex justify-end">
               <button

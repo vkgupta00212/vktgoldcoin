@@ -1,31 +1,38 @@
 import { div } from "framer-motion/client";
 import react, { useState, useEffect } from "react";
 import coinBag from "../../assets/coin_bag.png";
-import TransferHistoryShow from "../../backend/transactionHistory/transactionHistoryShow.js";
+import CoinsShow from "../../backend/coins/coinsShow";
 
 const profileWallet = () => {
   const Email = localStorage.getItem("userEmail");
   const [coins, setCoins] = useState({});
 
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    const fetchCoinsDetails = async () => {
       try {
-        const res = await TransferHistoryShow(Email);
+        const res = await CoinsShow(Email);
         console.log("profile Wallet API Response:", res);
 
-        if (Array.isArray(res) && res.length > 0) {
-          let n = res.length;
-          const user = res[n - 1];
+        // ✅ Adjust according to correct structure
+        if (
+          res &&
+          res.Coin &&
+          Array.isArray(res.Coin) &&
+          res.Coin.length > 0 &&
+          res.Coin[0].Coin !== undefined
+        ) {
           setCoins({
-            coins: user.Coin,
+            coins: res.Coin[0].Coin,
           });
+        } else {
+          console.warn("⚠️ No valid Coin data found in response.");
         }
       } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error("Error fetching user coin details:", error);
       }
     };
 
-    fetchUserDetails();
+    fetchCoinsDetails();
   }, []);
 
   return (

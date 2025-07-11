@@ -23,7 +23,24 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "Phone") {
+      // Remove all non-digit characters
+      const cleanedValue = value.replace(/\D/g, "");
+
+      // Restrict to 10 digits max
+      if (cleanedValue.length > 10) return;
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: cleanedValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -57,6 +74,11 @@ const Register = () => {
         formData.PenCard,
         formData.ReferFriend
       );
+
+      if (response?.Message === "Already Exist") {
+        alert("Already exist");
+        return;
+      }
       alert("✅ Registered successfully!");
       navigate("/login");
     } catch (err) {
@@ -86,7 +108,7 @@ const Register = () => {
               name="Name"
               value={formData.Name}
               onChange={handleChange}
-              className={`w-full p-2 border rounded ${
+              className={`w-full p-[2px] border rounded ${
                 errors.Name ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -98,7 +120,8 @@ const Register = () => {
               <span className="bg-gray-100 border p-2 rounded-l">+91</span>
               <input
                 name="Phone"
-                type="text"
+                type="tel"
+                maxLength={10}
                 value={formData.Phone}
                 onChange={handleChange}
                 className={`flex-1 p-2 border rounded-r ${

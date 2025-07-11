@@ -3,6 +3,8 @@ import { FaCoins } from "react-icons/fa";
 import { FiRefreshCcw } from "react-icons/fi";
 import TransactionHistory from "../../backend/transactionHistory/transactionHistory.js";
 import getCustomerData from "../../backend/detailsh/getCustomerData.js";
+import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
+import CoinsUpdate from "../../backend/coins/coinsUpdate.js";
 
 const sellPages = () => {
   const [amount, setAmount] = useState(10);
@@ -12,15 +14,21 @@ const sellPages = () => {
   const [utrId, setUtrId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [loadingBuy, setLoadingBuy] = useState(false);
+  const [hasBankDetails, setHasBankDetails] = useState(false);
   const [userDetailsh, setUserDetailsh] = useState();
 
-  const goldRate = 300;
+  const goldRate = 200;
   const presetAmounts = [100, 250, 500, 1000];
 
   const summaryRef = useRef(null);
   const uploadRef = useRef(null);
+  const email = localStorage.getItem("userEmail");
 
   const handleContinue = () => {
+    if (amount < 10) {
+      alert("You must buy atleast 10 Coins to proceed");
+      return;
+    }
     setLoadingBuy(true);
     setTimeout(() => {
       const result = amount * goldRate;
@@ -30,6 +38,36 @@ const sellPages = () => {
       setLoadingBuy(false);
     }, 1000);
   };
+
+  useEffect(() => {
+    const fetchBankDetailsh = async () => {
+      try {
+        const res = await bankDetailshShowAPI(email);
+        console.log("API Bank Response:", res); // full array
+
+        // Check if array and has required fields in first item
+        if (
+          Array.isArray(res) &&
+          res.length > 0 &&
+          res[0].Accountnumber &&
+          res[0].IFSC &&
+          res[0].Branch &&
+          res[0].Accountholder
+        ) {
+          setHasBankDetails(true);
+          console.log("✅ Bank details found:", res[0]);
+        } else {
+          setHasBankDetails(false);
+          console.warn("⚠️ Incomplete or missing bank details.");
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch bank details:", err);
+        setHasBankDetails(false);
+      }
+    };
+
+    fetchBankDetailsh(); // ✅ fixed function name
+  }, []);
 
   useEffect(() => {
     if (showSummary && summaryRef.current) {
@@ -69,56 +107,66 @@ const sellPages = () => {
   };
 
   const handlesubmit = async () => {
-    const email = localStorage.getItem("userEmail");
     const currentDate = new Date().toISOString();
 
-    try {
-      let imageBase64 = "";
-      if (screenshot) {
-        imageBase64 = await convertToBase64(screenshot);
-      }
-
-      // Call the API with all required fields
-      await TransactionHistory(
-        totalAmount,
-        "Sell Gold Coin",
-        "Sell",
-        "Pending",
-        currentDate,
-        "0000000000",
-        "IFSC000000",
-        "VKT Digital Branch",
-        imageBase64,
-        amount,
-        email
-      );
-
-      alert("Transaction submitted successfully!");
-      setShowUploadSection(false);
-      setShowSummary(false);
-      setUtrId("");
-      setScreenshot(null);
-    } catch (err) {
-      console.error("Transaction submit error:", err);
-      alert("Failed to submit transaction.");
+    if (!hasBankDetails) {
+      alert("First Add Bank Detailsh");
     }
+
+    if (!userDetailsh || utrId !== userDetailsh.password) {
+      alert("Incorrect Password. Please try again. ");
+      return;
+    }
+    {
+      try {
+        let imageBase64 = "";
+        if (screenshot) {
+          imageBase64 = await convertToBase64(screenshot);
+        }
+
+        // Call the API with all required fields
+        await TransactionHistory(
+          totalAmount,
+          "Sell Gold Coin",
+          "Sell",
+          "Pending",
+          currentDate,
+          "0000000000",
+          "IFSC000000",
+          "VKT Digital Branch",
+          imageBase64,
+          amount,
+          email
+        );
+
+        await CoinsUpdate("sell", amount, email);
+
+        alert("Coins Selled");
+        setShowUploadSection(false);
+        setShowSummary(false);
+        setUtrId("");
+        setScreenshot(null);
+      } catch (err) {
+        console.error("Transaction submit error:", err);
+        alert("Failed to submit transaction.");
+      }
+    }
+    navigate("/");
   };
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
+
     const fetchPassword = async () => {
       try {
         const res = await getCustomerData(email);
-        console.log("getCustomerData response:", res);
+        console.log("API Raw Response:", res); // ← this will log the array
 
-        // Adjust based on response structure
-        if (res?.Profile?.Password) {
-          setUserDetailsh({ password: res.Profile.Password });
-          console.log("Fetched password:", res.Profile.Password);
-        } else if (Array.isArray(res) && res.length > 0 && res[0].Password) {
+        if (Array.isArray(res) && res.length > 0 && res[0].Password) {
           setUserDetailsh({ password: res[0].Password });
+          console.log("Fetched password:", res[0].Password); // ← now this will work
         } else {
-          console.warn("Password not found in response");
+          console.warn("Password not found in API response.");
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -148,13 +196,7 @@ const sellPages = () => {
                 min="10"
                 value={amount}
                 onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 10) {
-                    setAmount(value);
-                  } else {
-                    alert("Minimum 10 coins required to proceed.");
-                    setAmount(10);
-                  }
+                  setAmount(Number(e.target.value));
                 }}
                 className="text-center text-[30px] text-gray-700 bg-white border border-gray-300 rounded-md px-2 py-1 w-[150px] focus:outline-none focus:ring-2 focus:ring-blue-400"
               />

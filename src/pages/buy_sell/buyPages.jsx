@@ -3,6 +3,10 @@ import { FaCoins } from "react-icons/fa";
 import { FiRefreshCcw } from "react-icons/fi";
 import QRCode from "react-qr-code";
 import TransactionHistory from "../../backend/transactionHistory/transactionHistory.js";
+import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
+import AdressShowAPI from "../../backend/adress/AdressShowAPI.js";
+import CoinsInsert from "../../backend/coins/coinsInsert.js";
+import CoinsValue from "../../backend/coins/coinsValue.js";
 
 const BuyPages = () => {
   const [amount, setAmount] = useState(10);
@@ -12,14 +16,21 @@ const BuyPages = () => {
   const [utrId, setUtrId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [loadingBuy, setLoadingBuy] = useState(false);
-
-  const goldRate = 300;
+  const [hasBankDetails, setHasBankDetails] = useState(false);
+  const [hasAdressDetailsh, setHasAdressDetailsh] = useState(false);
+  const [goldRate, setGoldRate] = useState(0); // ✅ use state
   const presetAmounts = [100, 250, 500, 1000];
-
   const summaryRef = useRef(null);
   const uploadRef = useRef(null);
 
+  const email = localStorage.getItem("userEmail");
+
   const handleContinue = () => {
+    if (amount < 10) {
+      alert("You must buy atleast 10 Coins to proceed");
+      return;
+    }
+
     setLoadingBuy(true);
     setTimeout(() => {
       const result = amount * goldRate;
@@ -29,6 +40,85 @@ const BuyPages = () => {
       setLoadingBuy(false);
     }, 1000);
   };
+
+  useEffect(() => {
+    const fetchCoinValue = async () => {
+      try {
+        const res = await CoinsValue();
+        console.log("API Coin Value Response:", res);
+
+        if (Array.isArray(res) && res.length > 0) {
+          const user = res[0];
+          setGoldRate(parseFloat(user.Coinvalue)); // ✅ correct way
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch Coin value:", err);
+      }
+    };
+
+    fetchCoinValue();
+  }, []);
+
+  useEffect(() => {
+    const fetchAdressDetailsh = async () => {
+      try {
+        const res = await AdressShowAPI(email);
+        console.log("API Adress Response:", res); // full array
+
+        // ✅ Check correct fields based on actual response
+        if (
+          Array.isArray(res) &&
+          res.length > 0 &&
+          res[0].AddressLine2 &&
+          res[0].City &&
+          res[0].State &&
+          res[0].Pincode &&
+          res[0].Country
+        ) {
+          setHasAdressDetailsh(true);
+          console.log("✅ Address details found:", res[0]);
+        } else {
+          setHasAdressDetailsh(false);
+          console.warn("⚠️ Incomplete or missing Address details.");
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch Address details:", err);
+        setHasAdressDetailsh(false);
+      }
+    };
+
+    fetchAdressDetailsh();
+  }, []);
+
+  useEffect(() => {
+    const fetchBankDetailsh = async () => {
+      try {
+        const res = await bankDetailshShowAPI(email);
+        console.log("API Bank Response:", res); // full array
+
+        // Check if array and has required fields in first item
+        if (
+          Array.isArray(res) &&
+          res.length > 0 &&
+          res[0].Accountnumber &&
+          res[0].IFSC &&
+          res[0].Branch &&
+          res[0].Accountholder
+        ) {
+          setHasBankDetails(true);
+          console.log("✅ Bank details found:", res[0]);
+        } else {
+          setHasBankDetails(false);
+          console.warn("⚠️ Incomplete or missing bank details.");
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch bank details:", err);
+        setHasBankDetails(false);
+      }
+    };
+
+    fetchBankDetailsh(); // ✅ fixed function name
+  }, []);
 
   useEffect(() => {
     if (showSummary && summaryRef.current) {
@@ -68,16 +158,28 @@ const BuyPages = () => {
   };
 
   const handlesubmit = async () => {
-    const email = localStorage.getItem("userEmail");
     const currentDate = new Date().toISOString();
 
+    // ✅ Step 1: Check if bank details exist
+    if (!hasBankDetails) {
+      alert("❌ Please add your bank details first.");
+      return;
+    }
+
+    // ✅ Step 2: Check if address details exist
+    if (!hasAdressDetailsh) {
+      alert("❌ Please add your address details first.");
+      return;
+    }
+
     try {
+      // ✅ Step 3: Convert screenshot to Base64 if uploaded
       let imageBase64 = "";
       if (screenshot) {
         imageBase64 = await convertToBase64(screenshot);
       }
 
-      // Call the API with all required fields
+      // ✅ Step 4: Call Transaction API
       await TransactionHistory(
         totalAmount,
         "Buy Gold Coin",
@@ -92,14 +194,18 @@ const BuyPages = () => {
         email
       );
 
-      alert("Transaction submitted successfully!");
+      // ✅ Step 5: Call CoinsInsert API
+      await CoinsInsert(amount, email); // Corrected order: (coin, email)
+
+      // ✅ Step 6: Success message and UI reset
+      alert("✅ Transaction and coin insertion completed!");
       setShowUploadSection(false);
       setShowSummary(false);
       setUtrId("");
       setScreenshot(null);
     } catch (err) {
-      console.error("Transaction submit error:", err);
-      alert("Failed to submit transaction.");
+      console.error("❌ Transaction submit error:", err.message);
+      alert("❌ Failed to submit transaction. Please try again.");
     }
   };
 
@@ -120,16 +226,9 @@ const BuyPages = () => {
             <div className="text-5xl font-bold mb-2">
               <input
                 type="number"
-                min="10"
                 value={amount}
                 onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 10) {
-                    setAmount(value);
-                  } else {
-                    alert("Minimum 10 coins required to proceed.");
-                    setAmount(10);
-                  }
+                  setAmount(Number(e.target.value));
                 }}
                 className="text-center text-[30px] text-gray-700 bg-white border border-gray-300 rounded-md px-2 py-1 w-[150px] focus:outline-none focus:ring-2 focus:ring-blue-400"
               />

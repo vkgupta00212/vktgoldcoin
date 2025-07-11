@@ -1,6 +1,6 @@
 import React from "react";
 import ProfileCard from "../card/profileCard.jsx";
-import DashBoardDetailsh from "../card/dashboardDetailsh.jsx";
+import RecentTransfer from "../card/recentTransfer.jsx";
 import ButtonBuySell from "../card/button_buy_sell.jsx";
 import GoldCoin from "../card/goldcoin.jsx";
 import ProfileWallet from "../card/profileWallet.jsx";
@@ -27,7 +27,10 @@ const Home = ({ setSelectedPage }) => {
       {/* Dashboard Details */}
       <div className="bg-gray-200 rounded-[15px] mt-6 p-4 md:p-8 md:w-full  mx-auto">
         <section>
-          <DashBoardDetailsh />
+          <div className="text-[23px] font-semibold p-2">
+            <h2>Recent 5 transactions</h2>
+          </div>
+          <RecentTransfer />
         </section>
       </div>
     </div>

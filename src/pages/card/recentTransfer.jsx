@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TransactionHistoryShow from "../../backend/transactionHistory/transactionHistoryShow";
 
-const TransferHistory = () => {
+const RecentTransfer = () => {
   const [historyData, setHistoryData] = useState([]);
 
   useEffect(() => {
@@ -26,7 +26,11 @@ const TransferHistory = () => {
   // Create rows using for loop
   let transactionRows = [];
 
-  for (let i = 0; i < historyData.length; i++) {
+  for (
+    let i = historyData.length - 1;
+    i >= Math.max(0, historyData.length - 5);
+    i--
+  ) {
     const item = historyData[i];
     transactionRows.push(
       <div
@@ -87,4 +91,4 @@ const TransferHistory = () => {
   );
 };
 
-export default TransferHistory;
+export default RecentTransfer;
