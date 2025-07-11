@@ -145,14 +145,17 @@ const BuyPages = () => {
       />
     </svg>
   );
+
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // this gives full data URI
+
       reader.onload = () => {
-        const base64String = reader.result.split(",")[1]; // remove `data:image/...;base64,`
-        resolve(base64String);
+        const base64Data = reader.result.split(",")[1]; // 👈 remove MIME prefix
+        resolve(base64Data);
       };
+
       reader.onerror = (error) => reject(error);
     });
   };
@@ -160,51 +163,54 @@ const BuyPages = () => {
   const handlesubmit = async () => {
     const currentDate = new Date().toISOString();
 
-    // ✅ Step 1: Check if bank details exist
+    // Step 1: Check if bank details exist
     if (!hasBankDetails) {
       alert("❌ Please add your bank details first.");
       return;
     }
 
-    // ✅ Step 2: Check if address details exist
+    // Step 2: Check if address details exist
     if (!hasAdressDetailsh) {
       alert("❌ Please add your address details first.");
       return;
     }
 
-    try {
-      // ✅ Step 3: Convert screenshot to Base64 if uploaded
-      let imageBase64 = "";
-      if (screenshot) {
-        imageBase64 = await convertToBase64(screenshot);
-      }
+    // Step 3: Check if UTR and screenshot are provided
+    if (!screenshot) {
+      alert("❌ Please upload a screenshot or enter UTR ID.");
+      return;
+    }
 
-      // ✅ Step 4: Call Transaction API
+    try {
+      // Step 4: Convert image to base64
+      const imageBase64 = await convertToBase64(screenshot);
+
+      // Step 5: Call Transaction API
       await TransactionHistory(
         totalAmount,
-        "Buy Gold Coin",
-        "Buy",
-        "Pending",
+        "Buy Gold Coin", // Transaction Type
+        "Buy", // Category
+        "Pending", // Status
         currentDate,
-        "0000000000",
-        "IFSC000000",
-        "VKT Digital Branch",
-        imageBase64,
+        "0000000000", // Dummy account number (replace if needed)
+        "IFSC000000", // Dummy IFSC
+        "VKT Digital Branch", // Dummy Branch
+        imageBase64, // base64 image
         amount,
         email
       );
 
-      // ✅ Step 5: Call CoinsInsert API
-      await CoinsInsert(amount, email); // Corrected order: (coin, email)
+      // Step 6: Insert Coins into user's balance
+      await CoinsInsert(amount, email);
 
-      // ✅ Step 6: Success message and UI reset
-      alert("✅ Transaction and coin insertion completed!");
+      // Step 7: Success message and UI reset
+      alert("✅ Transaction submitted and coins inserted successfully!");
       setShowUploadSection(false);
       setShowSummary(false);
       setUtrId("");
       setScreenshot(null);
     } catch (err) {
-      console.error("❌ Transaction submit error:", err.message);
+      console.error("❌ Transaction submit error:", err.message || err);
       alert("❌ Failed to submit transaction. Please try again.");
     }
   };

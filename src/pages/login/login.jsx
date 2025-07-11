@@ -113,11 +113,6 @@ const LoginPage = () => {
               placeholder="Enter your password"
             />
           </div>
-          <div className="flex items-end justify-end mb-6">
-            <a href="#" className="text-[16px] text-blue-600 hover:underline">
-              Forgot password?
-            </a>
-          </div>
 
           <button
             type="submit"

@@ -1,9 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import getCustomerData from "../../backend/detailsh/getCustomerData.js";
+import ReferCount from "../../backend/refer/referCount.js";
 
 const ProfileCard = ({ setSelectedPage }) => {
   const Email = localStorage.getItem("userEmail");
   const [userDetails, setUserDetails] = useState({});
+  const [referCount, setReferCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUserRefer = async () => {
+      try {
+        const res = await ReferCount(Email);
+        console.log("Profile card referCount", res);
+        if (Array.isArray(res) && res.length > 0) {
+          const user = res[0];
+          setReferCount(user.Column1);
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+    fetchUserRefer();
+  }, []);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -16,6 +34,7 @@ const ProfileCard = ({ setSelectedPage }) => {
           setUserDetails({
             name: user.Name,
             mobile: user.Phone,
+            referCode: user.reffer,
           });
         }
       } catch (error) {
@@ -36,10 +55,15 @@ const ProfileCard = ({ setSelectedPage }) => {
         <h2 className="md:text-[28px] text-[22px] font-bold">
           {userDetails.name || "Loading..."}
         </h2>
-        <p className="md:text-[23px] mt-2">
-          Mobile No.: {userDetails.mobile || "Loading..."}
+        <p className="md:text-[23px] mt-2 font-medium">
+          Mobile No : {userDetails.mobile || "Loading..."}
         </p>
-        <p className="md:text-[23px] mt-2">Refered: {"0"}</p>
+        <p className="md:text-[23px] mt-2 font-medium">
+          My Refer Code : {userDetails.referCode}
+        </p>
+        <p className="md:text-[23px] mt-2 font-medium">
+          Refered : {referCount}
+        </p>
         <div className="mt-4 flex justify-center gap-4 flex-wrap">
           <button
             onClick={handlePageChange}

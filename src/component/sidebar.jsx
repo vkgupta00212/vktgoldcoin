@@ -68,17 +68,6 @@ const SideBar = ({ isOpen, onClose, selectedPage, setSelectedPage }) => {
           }}
         />
         <SidebarLink
-          label="Wallet"
-          icon={Wallet}
-          active={selectedPage === "Wallet"}
-          onClick={() => {
-            setSelectedPage("Wallet");
-            if (window.innerWidth < 768) {
-              onClose();
-            }
-          }}
-        />
-        <SidebarLink
           label="Profile"
           icon={User}
           active={selectedPage === "Profile"}

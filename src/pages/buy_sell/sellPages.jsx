@@ -5,6 +5,7 @@ import TransactionHistory from "../../backend/transactionHistory/transactionHist
 import getCustomerData from "../../backend/detailsh/getCustomerData.js";
 import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
 import CoinsUpdate from "../../backend/coins/coinsUpdate.js";
+import CoinsValue from "../../backend/coins/coinsValue.js";
 
 const sellPages = () => {
   const [amount, setAmount] = useState(10);
@@ -16,8 +17,7 @@ const sellPages = () => {
   const [loadingBuy, setLoadingBuy] = useState(false);
   const [hasBankDetails, setHasBankDetails] = useState(false);
   const [userDetailsh, setUserDetailsh] = useState();
-
-  const goldRate = 200;
+  const [goldRate, setGoldRate] = useState(0);
   const presetAmounts = [100, 250, 500, 1000];
 
   const summaryRef = useRef(null);
@@ -38,6 +38,24 @@ const sellPages = () => {
       setLoadingBuy(false);
     }, 1000);
   };
+
+  useEffect(() => {
+    const fetchCoinValue = async () => {
+      try {
+        const res = await CoinsValue();
+        console.log("API Coin Value Response:", res);
+
+        if (Array.isArray(res) && res.length > 0) {
+          const user = res[0];
+          setGoldRate(parseFloat(user.Coinvalue)); // ✅ correct way
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch Coin value:", err);
+      }
+    };
+
+    fetchCoinValue();
+  }, []);
 
   useEffect(() => {
     const fetchBankDetailsh = async () => {
@@ -110,48 +128,60 @@ const sellPages = () => {
     const currentDate = new Date().toISOString();
 
     if (!hasBankDetails) {
-      alert("First Add Bank Detailsh");
+      alert("First Add Bank Details");
+      return;
     }
 
     if (!userDetailsh || utrId !== userDetailsh.password) {
-      alert("Incorrect Password. Please try again. ");
+      alert("Incorrect Password. Please try again.");
       return;
     }
-    {
-      try {
-        let imageBase64 = "";
-        if (screenshot) {
-          imageBase64 = await convertToBase64(screenshot);
-        }
 
-        // Call the API with all required fields
-        await TransactionHistory(
-          totalAmount,
-          "Sell Gold Coin",
-          "Sell",
-          "Pending",
-          currentDate,
-          "0000000000",
-          "IFSC000000",
-          "VKT Digital Branch",
-          imageBase64,
-          amount,
-          email
-        );
-
-        await CoinsUpdate("sell", amount, email);
-
-        alert("Coins Selled");
-        setShowUploadSection(false);
-        setShowSummary(false);
-        setUtrId("");
-        setScreenshot(null);
-      } catch (err) {
-        console.error("Transaction submit error:", err);
-        alert("Failed to submit transaction.");
+    try {
+      let imageBase64 = "";
+      if (screenshot) {
+        imageBase64 = await convertToBase64(screenshot);
       }
+
+      // 1. Call the transaction history API
+      await TransactionHistory(
+        totalAmount,
+        "Sell Gold Coin",
+        "Sell",
+        "Pending",
+        currentDate,
+        "0000000000",
+        "IFSC000000",
+        "VKT Digital Branch",
+        imageBase64,
+        amount,
+        email
+      );
+
+      // 2. Call CoinsUpdate and capture the response
+      const coinUpdateResponse = await CoinsUpdate("sell", amount, email);
+
+      // 3. Check for specific error message
+      if (
+        coinUpdateResponse?.Message === "Insufficient balance or invalid user."
+      ) {
+        alert("❌ " + coinUpdateResponse.Message);
+        return;
+      }
+
+      // 4. Success logic
+      alert("✅ Coins Sold Successfully");
+    } catch (err) {
+      console.error("Transaction submit error:", err);
+      alert("❌ Failed to submit transaction.");
+    } finally {
+      // ✅ This will ALWAYS run after try/catch
+      setShowUploadSection(false);
+      setShowSummary(false);
+      setUtrId("");
+      setScreenshot(null);
+      navigate("/");
     }
-    navigate("/");
   };
 
   useEffect(() => {

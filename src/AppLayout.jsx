@@ -64,7 +64,6 @@ const AppLayout = () => {
           )}
           {selectedPage === "ReferEarn" && <ReferAndEarnPage />}
           {selectedPage === "Transactions" && <TransactionDetails />}
-          {selectedPage === "Wallet" && <div>Wallet</div>}
           {selectedPage === "Profile" && <UserProfile />}
           {selectedPage === "About" && <AboutUs />}
         </main>
