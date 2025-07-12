@@ -19,14 +19,14 @@ const BuyPages = () => {
   const [hasBankDetails, setHasBankDetails] = useState(false);
   const [hasAdressDetailsh, setHasAdressDetailsh] = useState(false);
   const [goldRate, setGoldRate] = useState(0); // ✅ use state
-  const presetAmounts = [100, 250, 500, 1000];
+  const presetAmounts = [5, 10, 15, 20];
   const summaryRef = useRef(null);
   const uploadRef = useRef(null);
 
   const email = localStorage.getItem("userEmail");
 
   const handleContinue = () => {
-    if (amount < 10) {
+    if (amount < 5) {
       alert("You must buy atleast 10 Coins to proceed");
       return;
     }
@@ -312,7 +312,7 @@ const BuyPages = () => {
             </div>
             <div className="bg-white p-4 rounded-xl shadow-md mb-4">
               <QRCode
-                value={`upi://pay?pa=9619638549-1@axl&pn=Vishal Kumar&am=${totalAmount}&cu=INR`}
+                value={`upi://pay?pa=turkavenkatakrishna@okaxis&pn=Vishal Kumar&am=${totalAmount}&cu=INR`}
                 size={160}
               />
             </div>

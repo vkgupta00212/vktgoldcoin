@@ -69,7 +69,7 @@ const ProfileCard = ({ setSelectedPage }) => {
             onClick={handlePageChange}
             className="bg-gray-800 md:text-[22px] text-white px-4 py-2 rounded font-medium"
           >
-            REFERRAL LINKS
+            Refer & Earn
           </button>
         </div>
       </div>

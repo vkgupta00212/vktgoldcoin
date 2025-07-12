@@ -18,14 +18,14 @@ const sellPages = () => {
   const [hasBankDetails, setHasBankDetails] = useState(false);
   const [userDetailsh, setUserDetailsh] = useState();
   const [goldRate, setGoldRate] = useState(0);
-  const presetAmounts = [100, 250, 500, 1000];
+  const presetAmounts = [5, 10, 15, 20];
 
   const summaryRef = useRef(null);
   const uploadRef = useRef(null);
   const email = localStorage.getItem("userEmail");
 
   const handleContinue = () => {
-    if (amount < 10) {
+    if (amount < 5) {
       alert("You must buy atleast 10 Coins to proceed");
       return;
     }

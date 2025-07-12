@@ -69,13 +69,13 @@ const GoldCoin = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (canSell) {
-                    navigate("/sellcoin");
-                  } else {
-                    alert(
-                      "⛔ You can only sell coins after 6 months from the purchase date."
-                    );
-                  }
+                  // if (canSell) {
+                  navigate("/sellcoin");
+                  // } else {
+                  //   alert(
+                  //     "⛔ You can only sell coins after 6 months from the purchase date."
+                  //   );
+                  // }
                 }}
                 className={`w-full font-semibold py-2 rounded-[25px] shadow transition-transform duration-100 ease-in-out flex justify-center items-center gap-2 ${
                   canSell
