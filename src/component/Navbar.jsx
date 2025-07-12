@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronDown, Menu } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/coin.png";
 import userImg from "../assets/user.png";
@@ -8,12 +8,19 @@ import getCustomerData from "../backend/detailsh/getCustomerData";
 
 const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
   const Email = localStorage.getItem("userEmail");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // 🆕 modal state
-  const dropdownRef = useRef();
   const navigate = useNavigate();
-  const [UserDetailsh, setUserDetailsh] = useState({ name: "", mobile: "" });
+  const dropdownRef = useRef();
 
+  const [UserDetailsh, setUserDetailsh] = useState({ name: "", mobile: "" });
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // ✅ Load from sessionStorage or default image
+  const [profileImg, setProfileImg] = useState(() => {
+    return sessionStorage.getItem("profileImage") || userImg;
+  });
+
+  // ✅ Fetch user details
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -47,7 +54,7 @@ const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
   const handleOptionClick = (option) => {
     setShowDropdown(false);
     if (option === "Logout") {
-      setShowLogoutConfirm(true); // 🆕 show confirmation modal
+      setShowLogoutConfirm(true);
     }
     if (option === "Profile") {
       setSelectedPage("Profile");
@@ -56,6 +63,7 @@ const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
 
   const confirmLogout = () => {
     localStorage.removeItem("userEmail");
+    sessionStorage.removeItem("profileImage"); // ✅ clear image on logout
     setShowLogoutConfirm(false);
     navigate("/login", { replace: true });
   };
@@ -101,7 +109,7 @@ const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
           role="button"
         >
           <img
-            src={userImg}
+            src={profileImg}
             alt="Avatar"
             className="w-[45px] h-[45px] rounded-full md:w-[50px] md:h-[50px]"
           />
@@ -111,7 +119,7 @@ const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
 
         {/* Dropdown */}
         {showDropdown && (
-          <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md p-2 w-[140px] z-50">
+          <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md p-2 w-[180px] z-50">
             <button
               onClick={() => handleOptionClick("Profile")}
               className="w-full text-left py-1 hover:bg-gray-100 px-2"
@@ -124,11 +132,30 @@ const Navbar = ({ onDrawerToggle, isDrawerOpen, setSelectedPage }) => {
             >
               Logout
             </button>
+
+            {/* ✅ Upload New Profile Image */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    const base64Img = reader.result;
+                    setProfileImg(base64Img);
+                    sessionStorage.setItem("profileImage", base64Img);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+              className="mt-2 text-sm"
+            />
           </div>
         )}
       </div>
 
-      {/* 🆕 Logout Confirmation Modal */}
+      {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-slide-bounce">
           <div className="bg-white p-6 rounded-md shadow-lg text-center w-[300px]">

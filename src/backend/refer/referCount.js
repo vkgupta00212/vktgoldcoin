@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const  ReferCount = async (Email)=>{
+const  ReferCount = async (ReferCode)=>{
     const formData =  new URLSearchParams();
     formData.append("token", "ALJDFHAGEJJJKL");
-    formData.append("reffer", Email);
+    formData.append("reffer", ReferCode);
 
     try{
         const response = await axios.post("https://vkt.anklegaming.live/APIs/APIs.asmx/ShowrefferCount",

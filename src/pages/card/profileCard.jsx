@@ -1,6 +1,8 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import getCustomerData from "../../backend/detailsh/getCustomerData.js";
 import ReferCount from "../../backend/refer/referCount.js";
+import { FaRegCopy } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
 const ProfileCard = ({ setSelectedPage }) => {
   const Email = localStorage.getItem("userEmail");
@@ -8,45 +10,47 @@ const ProfileCard = ({ setSelectedPage }) => {
   const [referCount, setReferCount] = useState(0);
 
   useEffect(() => {
-    const fetchUserRefer = async () => {
+    const fetchData = async () => {
       try {
-        const res = await ReferCount(Email);
-        console.log("Profile card referCount", res);
-        if (Array.isArray(res) && res.length > 0) {
-          const user = res[0];
-          setReferCount(user.Column1);
-        }
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-      }
-    };
-    fetchUserRefer();
-  }, []);
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
+        // Step 1: Get user details using Email
         const res = await getCustomerData(Email);
-        console.log("API Response:", res);
+        console.log("User Data Response:", res);
 
         if (Array.isArray(res) && res.length > 0) {
           const user = res[0];
+          const referCode = user.reffer;
+
           setUserDetails({
             name: user.Name,
             mobile: user.Phone,
-            referCode: user.reffer,
+            referCode: referCode,
           });
+
+          // Step 2: Now fetch refer count using referCode
+          const referRes = await ReferCount(referCode);
+          console.log("ReferCount Response:", referRes);
+
+          if (Array.isArray(referRes) && referRes.length > 0) {
+            setReferCount(referRes[0].Column1);
+          }
         }
       } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error("Error in ProfileCard data fetch:", error);
       }
     };
 
-    fetchUserDetails();
+    fetchData();
   }, []);
 
   const handlePageChange = () => {
     setSelectedPage("ReferEarn");
+  };
+
+  const handleCopy = () => {
+    if (userDetails.referCode) {
+      navigator.clipboard.writeText(userDetails.referCode);
+      toast.success("Refer code copied!");
+    }
   };
 
   return (
@@ -56,13 +60,20 @@ const ProfileCard = ({ setSelectedPage }) => {
           {userDetails.name || "Loading..."}
         </h2>
         <p className="md:text-[23px] mt-2 font-medium">
-          Mobile No : {userDetails.mobile || "Loading..."}
+          Mobile No: {userDetails.mobile || "Loading..."}
+        </p>
+        <p className="md:text-[23px] mt-2 font-medium flex items-center gap-2">
+          My Refer Code: {userDetails.referCode}
+          {userDetails.referCode && (
+            <FaRegCopy
+              className="cursor-pointer hover:text-blue-600"
+              onClick={handleCopy}
+              title="Copy refer code"
+            />
+          )}
         </p>
         <p className="md:text-[23px] mt-2 font-medium">
-          My Refer Code : {userDetails.referCode}
-        </p>
-        <p className="md:text-[23px] mt-2 font-medium">
-          Refered : {referCount}
+          Referred: {referCount}
         </p>
         <div className="mt-4 flex justify-center gap-4 flex-wrap">
           <button
