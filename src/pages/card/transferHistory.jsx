@@ -47,7 +47,7 @@ const TransferHistory = () => {
         </div>
         <div
           className={`flex items-center justify-center ${
-            item.Status === "Suceess"
+            item.Status === "Success"
               ? "text-green-500"
               : item.Status === "Pending"
               ? "text-yellow-500"

@@ -4,7 +4,6 @@ import { FiRefreshCcw } from "react-icons/fi";
 import TransactionHistory from "../../backend/transactionHistory/transactionHistory.js";
 import getCustomerData from "../../backend/detailsh/getCustomerData.js";
 import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
-import CoinsUpdate from "../../backend/coins/coinsUpdate.js";
 import CoinsValue from "../../backend/coins/coinsValue.js";
 
 const sellPages = () => {
@@ -157,17 +156,6 @@ const sellPages = () => {
         amount,
         email
       );
-
-      // 2. Call CoinsUpdate and capture the response
-      const coinUpdateResponse = await CoinsUpdate("sell", amount, email);
-
-      // 3. Check for specific error message
-      if (
-        coinUpdateResponse?.Message === "Insufficient balance or invalid user."
-      ) {
-        alert("❌ " + coinUpdateResponse.Message);
-        return;
-      }
 
       // 4. Success logic
       alert("✅ Coins Sold Successfully");

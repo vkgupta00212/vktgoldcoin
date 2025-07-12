@@ -5,7 +5,6 @@ import QRCode from "react-qr-code";
 import TransactionHistory from "../../backend/transactionHistory/transactionHistory.js";
 import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
 import AdressShowAPI from "../../backend/adress/AdressShowAPI.js";
-import CoinsInsert from "../../backend/coins/coinsInsert.js";
 import CoinsValue from "../../backend/coins/coinsValue.js";
 
 const BuyPages = () => {
@@ -13,7 +12,6 @@ const BuyPages = () => {
   const [totalAmount, setTotalAmount] = useState(null);
   const [showSummary, setShowSummary] = useState(false);
   const [showUploadSection, setShowUploadSection] = useState(false);
-  const [utrId, setUtrId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [loadingBuy, setLoadingBuy] = useState(false);
   const [hasBankDetails, setHasBankDetails] = useState(false);
@@ -149,11 +147,11 @@ const BuyPages = () => {
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file); // this gives full data URI
+      reader.readAsDataURL(file);
 
       reader.onload = () => {
-        const base64Data = reader.result.split(",")[1]; // 👈 remove MIME prefix
-        resolve(base64Data);
+        const base64 = reader.result.split(",")[1]; // remove MIME prefix
+        resolve(base64);
       };
 
       reader.onerror = (error) => reject(error);
@@ -163,51 +161,57 @@ const BuyPages = () => {
   const handlesubmit = async () => {
     const currentDate = new Date().toISOString();
 
-    // Step 1: Check if bank details exist
+    // ✅ Step 1: Validate required details
     if (!hasBankDetails) {
       alert("❌ Please add your bank details first.");
       return;
     }
 
-    // Step 2: Check if address details exist
     if (!hasAdressDetailsh) {
       alert("❌ Please add your address details first.");
       return;
     }
 
-    // Step 3: Check if UTR and screenshot are provided
     if (!screenshot) {
-      alert("❌ Please upload a screenshot or enter UTR ID.");
+      alert("❌ Please upload a screenshot of payment.");
       return;
     }
 
     try {
-      // Step 4: Convert image to base64
+      // ✅ Step 2: Convert image to base64
       const imageBase64 = await convertToBase64(screenshot);
 
-      // Step 5: Call Transaction API
-      await TransactionHistory(
-        totalAmount,
-        "Buy Gold Coin", // Transaction Type
-        "Buy", // Category
+      // ✅ Step 3: Check image size in KB (optional)
+      const imageSizeInKB = (imageBase64.length * 3) / 4 / 1024;
+      console.log(`📦 Base64 image size: ${imageSizeInKB.toFixed(2)} KB`);
+
+      if (imageSizeInKB > 2000) {
+        // ~2MB safety limit
+        alert("❌ Screenshot is too large. Please upload an image under 2MB.");
+        return;
+      }
+
+      // ✅ Step 4: Call Transaction API
+      const response = await TransactionHistory(
+        totalAmount, // TransactionAmt
+        "Buy Gold Coin", // TransactionPurpose
+        "Buy", // TransactionType
         "Pending", // Status
-        currentDate,
-        "0000000000", // Dummy account number (replace if needed)
-        "IFSC000000", // Dummy IFSC
-        "VKT Digital Branch", // Dummy Branch
-        imageBase64, // base64 image
-        amount,
-        email
+        currentDate, // TDate
+        "0", // Accountnumber (placeholder)
+        "IFSC", // IFSC (placeholder)
+        "VKT Digital Branch", // Branch (placeholder)
+        imageBase64, // Timages (base64 string)
+        amount, // Coin
+        email // Email
       );
 
-      // Step 6: Insert Coins into user's balance
-      await CoinsInsert(amount, email);
+      console.log("✅ Transaction API Success:", response);
 
-      // Step 7: Success message and UI reset
-      alert("✅ Transaction submitted and coins inserted successfully!");
+      // ✅ Step 5: Reset UI and show success
+      alert("✅ Transaction submitted successfully!");
       setShowUploadSection(false);
       setShowSummary(false);
-      setUtrId("");
       setScreenshot(null);
     } catch (err) {
       console.error("❌ Transaction submit error:", err.message || err);
@@ -371,17 +375,6 @@ const BuyPages = () => {
               accept="image/*"
               onChange={(e) => setScreenshot(e.target.files[0])}
               className="mb-10"
-            />
-
-            <label className="mb-2 text-gray-600 font-medium">
-              Enter UTR ID
-            </label>
-            <input
-              type="text"
-              value={utrId}
-              onChange={(e) => setUtrId(e.target.value)}
-              placeholder="e.g., 1234567890UTR"
-              className="mb-10 px-4 py-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
 
             <button
