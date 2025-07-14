@@ -5,6 +5,7 @@ import TransactionHistory from "../../backend/transactionHistory/transactionHist
 import getCustomerData from "../../backend/detailsh/getCustomerData.js";
 import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
 import CoinsValue from "../../backend/coins/coinsValue.js";
+import CoinsUpdate from "../../backend/coins/coinsUpdate.js";
 
 const sellPages = () => {
   const [amount, setAmount] = useState(10);
@@ -157,6 +158,7 @@ const sellPages = () => {
         email
       );
 
+      await CoinsUpdate("sell", amount, email);
       // 4. Success logic
       alert("✅ Coins Sold Successfully");
     } catch (err) {
