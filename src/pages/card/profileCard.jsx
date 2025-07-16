@@ -12,7 +12,7 @@ const ProfileCard = ({ setSelectedPage }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Step 1: Get user details using Email
+        // Step 1: Get user details using E mail
         const res = await getCustomerData(Email);
         console.log("User Data Response:", res);
 

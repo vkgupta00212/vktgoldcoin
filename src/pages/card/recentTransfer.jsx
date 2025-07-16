@@ -51,7 +51,7 @@ const RecentTransfer = () => {
         </div>
         <div
           className={`flex items-center justify-center ${
-            item.Status === "Completed"
+            item.Status === "Success"
               ? "text-green-500"
               : item.Status === "Pending"
               ? "text-yellow-500"

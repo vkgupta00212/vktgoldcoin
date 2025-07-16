@@ -185,9 +185,9 @@ const BuyPages = () => {
       const imageSizeInKB = (imageBase64.length * 3) / 4 / 1024;
       console.log(`📦 Base64 image size: ${imageSizeInKB.toFixed(2)} KB`);
 
-      if (imageSizeInKB > 2000) {
-        // ~2MB safety limit
-        alert("❌ Screenshot is too large. Please upload an image under 2MB.");
+      if (imageSizeInKB > 10240) {
+        // 10 MB = 10 * 1024 KB = 10240 KB
+        alert("❌ Screenshot is too large. Please upload an image under 10MB.");
         return;
       }
 
