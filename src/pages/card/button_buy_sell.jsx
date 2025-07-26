@@ -17,51 +17,31 @@ const GoldCoin = () => {
     navigate("/sellcoin");
   };
 
-  // useEffect(() => {
-  //   const checkSellEligibility = async () => {
-  //     try {
-  //       // Step 1: Check current coin value
-  //       // Step 1: Check current coin value
-  //       const coinRes = await CoinsShow(email);
-  //       console.log("CoinsShow API response:", coinRes);
+  useEffect(() => {
+    const checkSellEligibility = async () => {
+      try {
+        const coinRes = await CoinsShow(email);
+        console.log("CoinsShow API response:", coinRes);
 
-  //       if (
-  //         coinRes?.Coin &&
-  //         Array.isArray(coinRes.Coin) &&
-  //         coinRes.Coin.length > 0
-  //       ) {
-  //         const totalCoins = parseFloat(coinRes.Coin[0].Coin) || 0;
-  //         setCoins(totalCoins);
-  //       } else {
-  //         setCoins(0);
-  //       }
+        if (
+          coinRes?.Coin &&
+          Array.isArray(coinRes.Coin) &&
+          coinRes.Coin.length > 0
+        ) {
+          const totalCoins = parseFloat(coinRes.Coin[0].Coin) || 0;
+          setCoins(totalCoins);
+        } else {
+          setCoins(0);
+        }
+        setCanSell(isEligible);
+      } catch (error) {
+        console.error("Error checking sell eligibility:", error);
+        setCanSell(false);
+      }
+    };
 
-  //       // Step 2: Check transaction history for 6-month hold
-  //       const res = await TransactionHistoryShow(email);
-  //       const purchases = res?.filter((tx) => tx.Type === "Buy" && tx.date);
-
-  //       if (!purchases || purchases.length === 0) {
-  //         setCanSell(false);
-  //         return;
-  //       }
-
-  //       const now = new Date();
-  //       const isEligible = purchases.some((tx) => {
-  //         const purchaseDate = new Date(tx.date);
-  //         const sixMonthsLater = new Date(purchaseDate);
-  //         sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-  //         return now >= sixMonthsLater;
-  //       });
-
-  //       setCanSell(isEligible);
-  //     } catch (error) {
-  //       console.error("Error checking sell eligibility:", error);
-  //       setCanSell(false);
-  //     }
-  //   };
-
-  //   checkSellEligibility();
-  // }, []);
+    checkSellEligibility();
+  }, []);
 
   return (
     <div className="flex justify-center items-center bg-inherit">
