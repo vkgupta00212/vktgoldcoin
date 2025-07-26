@@ -17,51 +17,51 @@ const GoldCoin = () => {
     navigate("/sellcoin");
   };
 
-  useEffect(() => {
-    const checkSellEligibility = async () => {
-      try {
-        // Step 1: Check current coin value
-        // Step 1: Check current coin value
-        const coinRes = await CoinsShow(email);
-        console.log("CoinsShow API response:", coinRes);
+  // useEffect(() => {
+  //   const checkSellEligibility = async () => {
+  //     try {
+  //       // Step 1: Check current coin value
+  //       // Step 1: Check current coin value
+  //       const coinRes = await CoinsShow(email);
+  //       console.log("CoinsShow API response:", coinRes);
 
-        if (
-          coinRes?.Coin &&
-          Array.isArray(coinRes.Coin) &&
-          coinRes.Coin.length > 0
-        ) {
-          const totalCoins = parseFloat(coinRes.Coin[0].Coin) || 0;
-          setCoins(totalCoins);
-        } else {
-          setCoins(0);
-        }
+  //       if (
+  //         coinRes?.Coin &&
+  //         Array.isArray(coinRes.Coin) &&
+  //         coinRes.Coin.length > 0
+  //       ) {
+  //         const totalCoins = parseFloat(coinRes.Coin[0].Coin) || 0;
+  //         setCoins(totalCoins);
+  //       } else {
+  //         setCoins(0);
+  //       }
 
-        // Step 2: Check transaction history for 6-month hold
-        const res = await TransactionHistoryShow(email);
-        const purchases = res?.filter((tx) => tx.Type === "Buy" && tx.date);
+  //       // Step 2: Check transaction history for 6-month hold
+  //       const res = await TransactionHistoryShow(email);
+  //       const purchases = res?.filter((tx) => tx.Type === "Buy" && tx.date);
 
-        if (!purchases || purchases.length === 0) {
-          setCanSell(false);
-          return;
-        }
+  //       if (!purchases || purchases.length === 0) {
+  //         setCanSell(false);
+  //         return;
+  //       }
 
-        const now = new Date();
-        const isEligible = purchases.some((tx) => {
-          const purchaseDate = new Date(tx.date);
-          const sixMonthsLater = new Date(purchaseDate);
-          sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-          return now >= sixMonthsLater;
-        });
+  //       const now = new Date();
+  //       const isEligible = purchases.some((tx) => {
+  //         const purchaseDate = new Date(tx.date);
+  //         const sixMonthsLater = new Date(purchaseDate);
+  //         sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  //         return now >= sixMonthsLater;
+  //       });
 
-        setCanSell(isEligible);
-      } catch (error) {
-        console.error("Error checking sell eligibility:", error);
-        setCanSell(false);
-      }
-    };
+  //       setCanSell(isEligible);
+  //     } catch (error) {
+  //       console.error("Error checking sell eligibility:", error);
+  //       setCanSell(false);
+  //     }
+  //   };
 
-    checkSellEligibility();
-  }, []);
+  //   checkSellEligibility();
+  // }, []);
 
   return (
     <div className="flex justify-center items-center bg-inherit">
@@ -91,21 +91,11 @@ const GoldCoin = () => {
                   if (coins <= 0) {
                     alert("⚠️ First buy coin before selling.");
                     return;
-                  }
-
-                  if (canSell) {
-                    navigate("/sellcoin");
                   } else {
-                    alert(
-                      "⛔ You can only sell coins after 6 months from the purchase date."
-                    );
+                    navigate("/sellcoin");
                   }
                 }}
-                className={`w-full font-semibold py-2 rounded-[25px] shadow transition-transform duration-100 ease-in-out flex justify-center items-center gap-2 ${
-                  canSell
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                } text-white`}
+                className={`w-full font-semibold py-2 rounded-[25px] shadow transition-transform duration-100 ease-in-out flex justify-center items-center gap-2 text-white bg-red-600 hover:bg-red-700 `}
               >
                 Sell
               </button>
