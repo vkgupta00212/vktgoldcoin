@@ -1,24 +1,44 @@
 import axios from "axios";
 
-const CoinsValue = async ()=>{
-    const formData = new URLSearchParams();
-    formData.append("token", "ALJDFHAGEJJJKL");
-
-    try{
-        const response = await axios.post("https://vkt.anklegaming.live/APIs/APIs.asmx/ShowCoinValues",
-            formData,
-            {
-               headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-            }
-        );
-        console.log(response.data);
-        return response.data;
-    }catch (error) {
-    console.error("❌ API error:", error.message);
-    throw new Error("Registration failed. Please try again.");
+// ✅ Define model with a static fromJSON factory method
+class CoinValueModel {
+  constructor(ID, Coinvalue) {
+    this.ID = ID;
+    this.Coinvalue = parseFloat(Coinvalue);
   }
 
+  // ✅ Converts raw API JSON into a CoinValueModel instance
+  static fromJSON(json) {
+    return new CoinValueModel(json.ID || "", json.Coinvalue || 0);
+  }
 }
-export default CoinsValue; 
+
+// ✅ Fetch API and map data into CoinValueModel instances
+const CoinsValue = async () => {
+  const formData = new URLSearchParams();
+  formData.append("token", "ALJDFHAGEJJJKL");
+
+  try {
+    const response = await axios.post(
+      "https://vkt.anklegaming.live/APIs/APIs.asmx/ShowCoinValues",
+      formData
+    );
+
+    let jsonData = response.data;
+
+    // 🧩 Handle both string or object responses
+    if (typeof jsonData === "string") {
+      jsonData = JSON.parse(jsonData);
+    }
+
+    // ✅ Convert each item to a CoinValueModel
+    const coinValues = jsonData.map((item) => CoinValueModel.fromJSON(item));
+
+    return coinValues;
+  } catch (error) {
+    console.error("❌ Error fetching Coin Value:", error);
+    return [];
+  }
+};
+
+export default CoinsValue;

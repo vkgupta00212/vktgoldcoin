@@ -1,44 +1,33 @@
 import React, { useEffect, useState } from "react";
 import CoinsShow from "../../backend/coins/coinsShow";
-import CoinsValue from "../../backend/coins/coinsValue";
 import TransactionHistoryShow from "../../backend/transactionHistory/transactionHistoryShow";
+import { useSharedCoinValue } from "../../backend/coins/liveprice"; // ✅ shared store
 
 const CoinSummary = () => {
   const Email = localStorage.getItem("userEmail");
   const [totalcoins, setTotalcoins] = useState({});
-  const [price, setPrice] = useState(0);
   const [latestTransaction, setLatestTransaction] = useState(null);
   const [gst, setGst] = useState(33);
   const [profitLoss, setProfitLoss] = useState(0);
 
+  // ✅ Get global live price (shared across all screens)
+  const { coinValue, changePercent } = useSharedCoinValue();
+
+  // ✅ Fetch user’s coin data
   useEffect(() => {
     const fetchCoinsDetails = async () => {
       try {
         const res = await CoinsShow(Email);
-        console.log("profile Wallet API Response:", res);
-        setTotalcoins(res.Coin[0]);
+        console.log("🪙 User Coin Data:", res);
+        if (res && res.Coin?.length > 0) setTotalcoins(res.Coin[0]);
       } catch (error) {
-        console.error("Error fetching user coin details:", error);
+        console.error("❌ Error fetching user coin details:", error);
       }
     };
     fetchCoinsDetails();
   }, [Email]);
 
-  useEffect(() => {
-    const fetchCoinValue = async () => {
-      try {
-        const res = await CoinsValue();
-        console.log("API Coin Value Response:", res);
-        if (Array.isArray(res) && res.length > 0) {
-          setPrice(res[0].Coinvalue);
-        }
-      } catch (err) {
-        console.error("❌ Failed to fetch Coin value:", err);
-      }
-    };
-    fetchCoinValue();
-  }, []);
-
+  // ✅ Fetch latest transaction
   useEffect(() => {
     const fetchTransactionData = async () => {
       try {
@@ -51,7 +40,7 @@ const CoinSummary = () => {
           setLatestTransaction(null);
         }
       } catch (err) {
-        console.error("Error loading transaction history:", err);
+        console.error("❌ Error loading transaction history:", err);
       }
     };
     fetchTransactionData();
@@ -59,17 +48,19 @@ const CoinSummary = () => {
 
   // ✅ Calculate profit/loss whenever data updates
   useEffect(() => {
-    if (latestTransaction && totalcoins?.Coin && price) {
+    if (latestTransaction && totalcoins?.Coin && coinValue) {
       const totalCoins = parseFloat(totalcoins.Coin) || 0;
-      const currentPrice = parseFloat(price) || 0;
+      const currentPrice = parseFloat(coinValue) || 0;
       const buyingPrice = parseFloat(latestTransaction.TransactionAmt) || 0;
 
       const totalValue = currentPrice * totalCoins;
       const profit = totalValue - buyingPrice;
 
-      setProfitLoss(profit.toFixed(2)); // Round to 2 decimals
+      setProfitLoss(profit.toFixed(2)); // round to 2 decimals
     }
-  }, [latestTransaction, totalcoins, price]);
+  }, [latestTransaction, totalcoins, coinValue]);
+
+  const isProfit = parseFloat(profitLoss) >= 0;
 
   return (
     <div className="flex justify-center items-center bg-blue-50">
@@ -86,15 +77,34 @@ const CoinSummary = () => {
             </tr>
 
             <tr className="border-b border-gray-300 bg-blue-50">
-              <td className="font-semibold py-2 px-4">Buying Price</td>
+              <td className="font-semibold py-2 px-4">
+                Buying Price (per coin)
+              </td>
               <td className="py-2 px-4 text-right">
-                ₹{latestTransaction?.TransactionAmt || 0}
+                ₹
+                {latestTransaction && totalcoins?.Coin
+                  ? (
+                      latestTransaction.TransactionAmt / totalcoins.Coin
+                    ).toFixed(2)
+                  : 0}
               </td>
             </tr>
 
+            {/* ✅ Current Price from Shared Live Store */}
             <tr className="border-b border-gray-300">
               <td className="font-semibold py-2 px-4">Current Price</td>
-              <td className="py-2 px-4 text-right">₹{price}</td>
+              <td className="py-2 px-4 text-right">
+                ₹{coinValue.toFixed(2)}{" "}
+                <span
+                  className={`ml-2 ${
+                    changePercent.startsWith("+")
+                      ? "text-green-600"
+                      : "text-red-600"
+                  } text-sm`}
+                >
+                  {changePercent}
+                </span>
+              </td>
             </tr>
 
             <tr className="border-b border-gray-300 bg-blue-50">
@@ -106,7 +116,7 @@ const CoinSummary = () => {
               <td className="font-semibold py-2 px-4">Total Profit/Loss</td>
               <td
                 className={`py-2 px-4 text-right font-semibold ${
-                  profitLoss >= 0 ? "text-green-600" : "text-red-600"
+                  isProfit ? "text-green-600" : "text-red-600"
                 }`}
               >
                 ₹{profitLoss}
