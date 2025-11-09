@@ -28,7 +28,7 @@ const Home = ({ setSelectedPage }) => {
       <div className="bg-gray-200 rounded-[15px] mt-6 p-4 md:p-8 md:w-full  mx-auto">
         <section>
           <div className="text-[23px] font-semibold p-2">
-            <h2>Recent 5 transactions</h2>
+            {/* <h2>Recent 5 transactions</h2> */}
           </div>
           <RecentTransfer />
         </section>

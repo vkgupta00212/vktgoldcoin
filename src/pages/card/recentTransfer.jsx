@@ -1,94 +1,122 @@
 import React, { useEffect, useState } from "react";
+import CoinsShow from "../../backend/coins/coinsShow";
+import CoinsValue from "../../backend/coins/coinsValue";
 import TransactionHistoryShow from "../../backend/transactionHistory/transactionHistoryShow";
 
-const RecentTransfer = () => {
-  const [historyData, setHistoryData] = useState([]);
+const CoinSummary = () => {
+  const Email = localStorage.getItem("userEmail");
+  const [totalcoins, setTotalcoins] = useState({});
+  const [price, setPrice] = useState(0);
+  const [latestTransaction, setLatestTransaction] = useState(null);
+  const [gst, setGst] = useState(33);
+  const [profitLoss, setProfitLoss] = useState(0);
+
+  useEffect(() => {
+    const fetchCoinsDetails = async () => {
+      try {
+        const res = await CoinsShow(Email);
+        console.log("profile Wallet API Response:", res);
+        setTotalcoins(res.Coin[0]);
+      } catch (error) {
+        console.error("Error fetching user coin details:", error);
+      }
+    };
+    fetchCoinsDetails();
+  }, [Email]);
+
+  useEffect(() => {
+    const fetchCoinValue = async () => {
+      try {
+        const res = await CoinsValue();
+        console.log("API Coin Value Response:", res);
+        if (Array.isArray(res) && res.length > 0) {
+          setPrice(res[0].Coinvalue);
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch Coin value:", err);
+      }
+    };
+    fetchCoinValue();
+  }, []);
 
   useEffect(() => {
     const fetchTransactionData = async () => {
-      const email = localStorage.getItem("userEmail");
       try {
-        const res = await TransactionHistoryShow(email);
-
+        const res = await TransactionHistoryShow(Email);
         if (Array.isArray(res) && res.length > 0) {
-          setHistoryData(res); // directly set array of transactions
+          const latest = res[res.length - 1];
+          setLatestTransaction(latest);
+          console.log("✅ Latest Transaction:", latest);
         } else {
-          setHistoryData([]); // handle no data
+          setLatestTransaction(null);
         }
       } catch (err) {
         console.error("Error loading transaction history:", err);
       }
     };
-
     fetchTransactionData();
-  }, []);
+  }, [Email]);
 
-  // Create rows using for loop
-  let transactionRows = [];
+  // ✅ Calculate profit/loss whenever data updates
+  useEffect(() => {
+    if (latestTransaction && totalcoins?.Coin && price) {
+      const totalCoins = parseFloat(totalcoins.Coin) || 0;
+      const currentPrice = parseFloat(price) || 0;
+      const buyingPrice = parseFloat(latestTransaction.TransactionAmt) || 0;
 
-  for (
-    let i = historyData.length - 1;
-    i >= Math.max(0, historyData.length - 5);
-    i--
-  ) {
-    const item = historyData[i];
-    transactionRows.push(
-      <div
-        key={item.ID || i}
-        className={`grid grid-cols-6 border-b-[1px] border-gray-950 text-[10px] md:text-[20px] px-4 py-3 ${
-          i % 2 === 0 ? "bg-blue-200" : ""
-        }`}
-      >
-        <div className="flex items-center justify-center">
-          {item.TransactionID}
-        </div>
-        <div className="flex items-center justify-center">{item.Coin}</div>
-        <div className="flex items-center justify-center">
-          {item.TransactionAmt}
-        </div>
-        <div className="flex items-center justify-center">
-          {new Date(item.TDate).toLocaleDateString()}
-        </div>
-        <div
-          className={`flex items-center justify-center ${
-            item.Status === "Success"
-              ? "text-green-500"
-              : item.Status === "Pending"
-              ? "text-yellow-500"
-              : "text-red-500"
-          }`}
-        >
-          {item.Status}
-        </div>
-        <div className="flex items-center justify-center">
-          {item.TransactionType}
-        </div>
-      </div>
-    );
-  }
+      const totalValue = currentPrice * totalCoins;
+      const profit = totalValue - buyingPrice;
+
+      setProfitLoss(profit.toFixed(2)); // Round to 2 decimals
+    }
+  }, [latestTransaction, totalcoins, price]);
 
   return (
-    <div className="bg-blue-100 py-2">
-      {/* Header */}
-      <div className="grid grid-cols-6 font-semibold border-b pb-2 px-4 text-[12px] md:text-[22px]">
-        <div className="flex items-center justify-center">ID</div>
-        <div className="flex items-center justify-center">Coins</div>
-        <div className="flex items-center justify-center">Amount</div>
-        <div className="flex items-center justify-center">Date</div>
-        <div className="flex items-center justify-center">Status</div>
-        <div className="flex items-center justify-center">Type</div>
-      </div>
+    <div className="flex justify-center items-center bg-blue-50">
+      <div className="bg-white p-6 rounded-xl shadow-md w-[90%] md:w-[500px]">
+        <h2 className="text-center text-[16px] md:text-[24px] font-semibold mb-6">
+          Investment Summary
+        </h2>
 
-      {/* Data Rows */}
-      {transactionRows.length === 0 ? (
-        <div className="text-center text-gray-500 py-6 text-[14px] md:text-[18px]">
-          No transactions found.
-        </div>
-      ) : (
-        transactionRows
-      )}
+        <table className="w-full border-collapse text-[12px] md:text-[18px]">
+          <tbody>
+            <tr className="border-b border-gray-300">
+              <td className="font-semibold py-2 px-4">Total Coins</td>
+              <td className="py-2 px-4 text-right">{totalcoins.Coin || 0}</td>
+            </tr>
+
+            <tr className="border-b border-gray-300 bg-blue-50">
+              <td className="font-semibold py-2 px-4">Buying Price</td>
+              <td className="py-2 px-4 text-right">
+                ₹{latestTransaction?.TransactionAmt || 0}
+              </td>
+            </tr>
+
+            <tr className="border-b border-gray-300">
+              <td className="font-semibold py-2 px-4">Current Price</td>
+              <td className="py-2 px-4 text-right">₹{price}</td>
+            </tr>
+
+            <tr className="border-b border-gray-300 bg-blue-50">
+              <td className="font-semibold py-2 px-4">GST (33%)</td>
+              <td className="py-2 px-4 text-right">{gst}%</td>
+            </tr>
+
+            <tr>
+              <td className="font-semibold py-2 px-4">Total Profit/Loss</td>
+              <td
+                className={`py-2 px-4 text-right font-semibold ${
+                  profitLoss >= 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                ₹{profitLoss}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export default RecentTransfer;
+export default CoinSummary;
