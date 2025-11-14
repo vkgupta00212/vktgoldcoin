@@ -1,7 +1,7 @@
 import React from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import vktlogo from "../../assets/coin.png";
-import { useSharedCoinValue } from "../../backend/coins/coinValueStore"; // ✅ updated import
+import { useSharedCoinValue } from "../../backend/coins/liveprice";
 
 const GoldCoin = () => {
   const { coinValue, changePercent } = useSharedCoinValue(); // ✅ use shared store
@@ -9,7 +9,7 @@ const GoldCoin = () => {
 
   return (
     <div className="flex justify-center items-center bg-inherit">
-      <div className="w-[300px] md:w-[500px] md:h-[300px] p-6 bg-white rounded-2xl shadow-md text-gray-800 flex flex-col justify-start items-start transition-all duration-300 hover:shadow-lg">
+      <div className="w-[300px] md:w-[500px] md:h-[300px] p-5 bg-white rounded-2xl shadow-md text-gray-800 flex flex-col justify-start items-start transition-all duration-300 hover:shadow-lg">
         {/* Logo Section */}
         <div className="bg-orange-500 rounded-full flex justify-center items-center mb-4">
           <img
@@ -20,7 +20,7 @@ const GoldCoin = () => {
         </div>
 
         {/* Coin Details */}
-        <div className="text-start mb-4">
+        <div className="text-start mb-1">
           <p className="md:text-[35px] text-[25px] font-semibold">
             VKT Gold Coin
           </p>
