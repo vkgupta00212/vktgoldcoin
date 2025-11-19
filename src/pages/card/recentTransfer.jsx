@@ -46,22 +46,26 @@ const CoinSummary = () => {
     if (latestTransaction && totalcoins?.Coin && coinValue) {
       const totalCoins = parseFloat(totalcoins.Coin) || 0;
       const currentPrice = parseFloat(coinValue) || 0;
-      const buyingPrice = parseFloat(latestTransaction.TransactionAmt) || 0;
+      const buyingPriceTotal =
+        parseFloat(latestTransaction.TransactionAmt * totalCoins) || 0;
+      // console.log("total coin ", totalCoins);
+      // console.log("buying price", latestTransaction.TransactionAmt);
+      // console.log("current price coin ", currentPrice);
 
-      const totalValue = currentPrice * totalCoins;
+      const currentTotalValue = currentPrice * totalCoins;
+      const grossProfitLoss = currentTotalValue - buyingPriceTotal;
 
-      // ✔ Removing 33% GST → taking 67% of the profit
-      let profit;
+      let netProfitLoss;
 
-      if (totalValue >= buyingPrice) {
-        // Profit → deduct 33% GST
-        profit = (totalValue - buyingPrice) * 0.67;
+      if (grossProfitLoss >= 0) {
+        // Profit → Apply 33% GST → User gets only 67% of the profit
+        netProfitLoss = grossProfitLoss * 0.67;
       } else {
-        // Loss → do NOT deduct GST
-        profit = totalValue - buyingPrice;
+        // Loss → No GST applied → Show full loss
+        netProfitLoss = grossProfitLoss;
       }
 
-      setProfitLoss(profit.toFixed(2));
+      setProfitLoss(netProfitLoss.toFixed(2));
     }
   }, [latestTransaction, totalcoins, coinValue]);
 
