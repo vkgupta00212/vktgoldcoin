@@ -3,14 +3,22 @@ import bankDetailshShowAPI from "../../../backend/bank/bankDetailsh";
 import BankDetailshInsert from "../../../backend/bank/bankDetailshInsert";
 import BankDetailshUpdate from "../../../backend/bank/bankDetailshUpdate.js";
 
+/**
+ * BankDetailsh Component
+ * - Fetches bank details via bankDetailshShowAPI
+ * - Supports edit/update and add (insert)
+ * - Handles API returning a model instance, an array, or null
+ */
+
 const BankDetailsh = () => {
   const email = localStorage.getItem("userEmail") || "";
   const phone = localStorage.getItem("userPhone") || "";
-  const [userDetailsh, setUserDetailsh] = useState(null);
+  const [userDetailsh, setUserDetailsh] = useState(null); // normalized data object
   const [editedDetails, setEditedDetails] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [isNewEntry, setIsNewEntry] = useState(false);
 
+  // Fields used in UI (keys match component's normalized object)
   const fields = [
     { label: "Account Holder Name", key: "accountHolderName" },
     { label: "Account Number", key: "accountNumber" },
@@ -19,19 +27,48 @@ const BankDetailsh = () => {
     { label: "Branch Name", key: "branchName" },
   ];
 
+  // Normalize API response into the shape used by this component
+  const normalizeApiToUi = (apiData) => {
+    if (!apiData) return null;
+
+    // If API returned an array: take first item
+    if (Array.isArray(apiData) && apiData.length > 0) {
+      apiData = apiData[0];
+    }
+
+    // If API returned a model-like object (BankDetailsModel) or raw object
+    // It might have keys like: Accountnumber, IFSC, Branch, Accountholder, BankName
+    // Or if it was converted to model earlier it may have accountNumber, ifsc, branch etc.
+    return {
+      accountHolderName:
+        apiData.accountHolder ??
+        apiData.Accountholder ??
+        apiData.accountHolderName ??
+        "",
+      accountNumber:
+        apiData.accountNumber ??
+        apiData.Accountnumber ??
+        apiData.accountNo ??
+        "",
+      bankIFSC: apiData.ifsc ?? apiData.IFSC ?? apiData.bankIFSC ?? "",
+      bankName: apiData.bankName ?? apiData.BankName ?? "",
+      branchName: apiData.branch ?? apiData.Branch ?? apiData.branchName ?? "",
+    };
+  };
+
   const fetchBankDetails = async () => {
+    if (!email) return;
     try {
       const res = await bankDetailshShowAPI(email);
-      if (Array.isArray(res) && res.length > 0) {
-        const user = res[0];
-        const userData = {
-          accountHolderName: user.Accountholder,
-          accountNumber: user.Accountnumber,
-          bankIFSC: user.IFSC,
-          bankName: user.BankName,
-          branchName: user.Branch,
-        };
-        setUserDetailsh(userData);
+
+      // res could be:
+      // - instance of BankDetailsModel (object with accountNumber/ifsc/...),
+      // - an array [{...}],
+      // - or null
+      const normalized = normalizeApiToUi(res);
+
+      if (normalized) {
+        setUserDetailsh(normalized);
       } else {
         setUserDetailsh(null);
       }
@@ -42,7 +79,8 @@ const BankDetailsh = () => {
   };
 
   useEffect(() => {
-    if (email) fetchBankDetails();
+    fetchBankDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
   const handleEditClick = () => {
@@ -52,7 +90,13 @@ const BankDetailsh = () => {
   };
 
   const handleAddInfoClick = () => {
-    setEditedDetails({});
+    setEditedDetails({
+      accountHolderName: "",
+      accountNumber: "",
+      bankIFSC: "",
+      bankName: "",
+      branchName: "",
+    });
     setIsEditing(true);
     setIsNewEntry(true);
   };
@@ -64,29 +108,36 @@ const BankDetailsh = () => {
   const handleCancel = () => {
     setIsEditing(false);
     setIsNewEntry(false);
+    setEditedDetails({});
   };
 
   const handleSave = async () => {
     try {
+      // map UI keys back to API param order used by your Insert/Update functions
+      const accountNumber = editedDetails.accountNumber || "";
+      const bankIFSC = editedDetails.bankIFSC || "";
+      const branchName = editedDetails.branchName || "";
+      const accountHolderName = editedDetails.accountHolderName || "";
+      const bankName = editedDetails.bankName || "";
+
       if (isNewEntry) {
-        // Call Insert API
         await BankDetailshInsert(
-          editedDetails.accountNumber || "",
-          editedDetails.bankIFSC || "",
-          editedDetails.branchName || "",
-          editedDetails.accountHolderName || "",
-          editedDetails.bankName || "",
+          accountNumber,
+          bankIFSC,
+          branchName,
+          accountHolderName,
+          bankName,
           phone,
           email
         );
         alert("✅ Bank details inserted successfully!");
       } else {
         await BankDetailshUpdate(
-          editedDetails.accountNumber || "",
-          editedDetails.bankIFSC || "",
-          editedDetails.branchName || "",
-          editedDetails.accountHolderName || "",
-          editedDetails.bankName || "",
+          accountNumber,
+          bankIFSC,
+          branchName,
+          accountHolderName,
+          bankName,
           phone,
           email
         );
@@ -95,9 +146,9 @@ const BankDetailsh = () => {
 
       setIsEditing(false);
       setIsNewEntry(false);
-      fetchBankDetails(); // Refresh data after save
+      fetchBankDetails(); // Refresh after save
     } catch (err) {
-      console.error("Error saving bank details:", err.message);
+      console.error("Error saving bank details:", err);
       alert("❌ Failed to save bank details. Please try again.");
     }
   };

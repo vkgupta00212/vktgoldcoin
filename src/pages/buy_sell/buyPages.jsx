@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { FaCoins } from "react-icons/fa";
 import { FiRefreshCcw } from "react-icons/fi";
 import QRCode from "react-qr-code";
@@ -15,11 +16,13 @@ const BuyPages = () => {
   const [screenshot, setScreenshot] = useState(null);
   const [loadingBuy, setLoadingBuy] = useState(false);
   const [hasBankDetails, setHasBankDetails] = useState(false);
+  const [bankDetails, setBankDetails] = useState(null);
   const [hasAdressDetailsh, setHasAdressDetailsh] = useState(false);
   const [goldRate, setGoldRate] = useState(0); // ✅ use state
   const presetAmounts = [5, 10, 15, 20];
   const summaryRef = useRef(null);
   const uploadRef = useRef(null);
+  const navigate = useNavigate();
 
   const email = localStorage.getItem("userEmail");
 
@@ -91,32 +94,55 @@ const BuyPages = () => {
   useEffect(() => {
     const fetchBankDetailsh = async () => {
       try {
+        if (!email) {
+          setHasBankDetails(false);
+          return;
+        }
         const res = await bankDetailshShowAPI(email);
-        console.log("API Bank Response:", res); // full array
+        // res might be an array or object or model instance
+        let record = null;
+        if (Array.isArray(res) && res.length > 0) record = res[0];
+        else if (res && typeof res === "object") record = res;
 
-        // Check if array and has required fields in first item
         if (
-          Array.isArray(res) &&
-          res.length > 0 &&
-          res[0].Accountnumber &&
-          res[0].IFSC &&
-          res[0].Branch &&
-          res[0].Accountholder
+          record &&
+          (record.Accountnumber || record.accountNumber) &&
+          (record.IFSC || record.ifsc) &&
+          (record.Branch || record.branch) &&
+          (record.Accountholder ||
+            record.accountHolder ||
+            record.Accountholder === "")
         ) {
+          const normalized = {
+            accountNumber: record.Accountnumber ?? record.accountNumber ?? "",
+            ifsc: record.IFSC ?? record.ifsc ?? "",
+            branch: record.Branch ?? record.branch ?? "",
+            accountHolder:
+              record.Accountholder ??
+              record.accountHolder ??
+              record.Accountholder ??
+              "",
+            bankName: record.BankName ?? record.bankName ?? "",
+            phone: record.Phone ?? record.phone ?? "",
+            email: record.Email ?? record.email ?? "",
+          };
+          setBankDetails(normalized);
           setHasBankDetails(true);
-          console.log("✅ Bank details found:", res[0]);
+          console.log("Bank details loaded:", normalized);
         } else {
           setHasBankDetails(false);
-          console.warn("⚠️ Incomplete or missing bank details.");
+          setBankDetails(null);
+          console.warn("No complete bank details found.");
         }
       } catch (err) {
-        console.error("❌ Failed to fetch bank details:", err);
+        console.error("Failed to fetch bank details:", err);
         setHasBankDetails(false);
+        setBankDetails(null);
       }
     };
 
-    fetchBankDetailsh(); // ✅ fixed function name
-  }, []);
+    fetchBankDetailsh();
+  }, [email]);
 
   useEffect(() => {
     if (showSummary && summaryRef.current) {
@@ -198,9 +224,9 @@ const BuyPages = () => {
         "Buy", // TransactionType
         "Pending", // Status
         currentDate, // TDate
-        "0", // Accountnumber (placeholder)
-        "IFSC", // IFSC (placeholder)
-        "VKT Digital Branch", // Branch (placeholder)
+        bankDetails.accountNumber,
+        bankDetails.ifsc,
+        bankDetails.branch,
         imageBase64, // Timages (base64 string)
         amount, // Coin
         email // Email
@@ -213,6 +239,7 @@ const BuyPages = () => {
       setShowUploadSection(false);
       setShowSummary(false);
       setScreenshot(null);
+      navigate("/");
     } catch (err) {
       console.error("❌ Transaction submit error:", err.message || err);
       alert("❌ Failed to submit transaction. Please try again.");

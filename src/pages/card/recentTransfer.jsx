@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from "react";
 import CoinsShow from "../../backend/coins/coinsShow";
 import TransactionHistoryShow from "../../backend/transactionHistory/transactionHistoryShow";
-import { useSharedCoinValue } from "../../backend/coins/liveprice"; // ✅ shared store
+import { useSharedCoinValue } from "../../backend/coins/liveprice";
 
 const CoinSummary = () => {
   const Email = localStorage.getItem("userEmail");
   const [totalcoins, setTotalcoins] = useState({});
   const [latestTransaction, setLatestTransaction] = useState(null);
-  const [gst, setGst] = useState(33);
+  const [gst, setGst] = useState(33); // still showing GST just for display
   const [profitLoss, setProfitLoss] = useState(0);
 
-  // ✅ Get global live price (shared across all screens)
   const { coinValue, changePercent } = useSharedCoinValue();
 
-  // ✅ Fetch user’s coin data
   useEffect(() => {
     const fetchCoinsDetails = async () => {
       try {
         const res = await CoinsShow(Email);
-        console.log("🪙 User Coin Data:", res);
         if (res && res.Coin?.length > 0) setTotalcoins(res.Coin[0]);
       } catch (error) {
         console.error("❌ Error fetching user coin details:", error);
@@ -27,7 +24,6 @@ const CoinSummary = () => {
     fetchCoinsDetails();
   }, [Email]);
 
-  // ✅ Fetch latest transaction
   useEffect(() => {
     const fetchTransactionData = async () => {
       try {
@@ -35,7 +31,6 @@ const CoinSummary = () => {
         if (Array.isArray(res) && res.length > 0) {
           const latest = res[res.length - 1];
           setLatestTransaction(latest);
-          console.log("✅ Latest Transaction:", latest);
         } else {
           setLatestTransaction(null);
         }
@@ -46,7 +41,7 @@ const CoinSummary = () => {
     fetchTransactionData();
   }, [Email]);
 
-  // ✅ Calculate profit/loss whenever data updates
+  // ✅ PROFIT CALCULATION WITH 33% GST REMOVED
   useEffect(() => {
     if (latestTransaction && totalcoins?.Coin && coinValue) {
       const totalCoins = parseFloat(totalcoins.Coin) || 0;
@@ -54,9 +49,19 @@ const CoinSummary = () => {
       const buyingPrice = parseFloat(latestTransaction.TransactionAmt) || 0;
 
       const totalValue = currentPrice * totalCoins;
-      const profit = totalValue - buyingPrice;
 
-      setProfitLoss(profit.toFixed(2)); // round to 2 decimals
+      // ✔ Removing 33% GST → taking 67% of the profit
+      let profit;
+
+      if (totalValue >= buyingPrice) {
+        // Profit → deduct 33% GST
+        profit = (totalValue - buyingPrice) * 0.67;
+      } else {
+        // Loss → do NOT deduct GST
+        profit = totalValue - buyingPrice;
+      }
+
+      setProfitLoss(profit.toFixed(2));
     }
   }, [latestTransaction, totalcoins, coinValue]);
 
@@ -90,7 +95,7 @@ const CoinSummary = () => {
               </td>
             </tr>
 
-            {/* ✅ Current Price from Shared Live Store */}
+            {/* Current Price Live */}
             <tr className="border-b border-gray-300">
               <td className="font-semibold py-2 px-4">Current Price</td>
               <td className="py-2 px-4 text-right">

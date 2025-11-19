@@ -6,9 +6,10 @@ import getCustomerData from "../../backend/detailsh/getCustomerData.js";
 import bankDetailshShowAPI from "../../backend/bank/bankDetailsh.js";
 import CoinsValue from "../../backend/coins/coinsValue.js";
 import CoinsUpdate from "../../backend/coins/coinsUpdate.js";
+import { useNavigate } from "react-router-dom";
 
-const sellPages = () => {
-  const [amount, setAmount] = useState(10);
+const SellPages = () => {
+  const [amount, setAmount] = useState(1);
   const [totalAmount, setTotalAmount] = useState(null);
   const [showSummary, setShowSummary] = useState(false);
   const [showUploadSection, setShowUploadSection] = useState(false);
@@ -16,6 +17,7 @@ const sellPages = () => {
   const [screenshot, setScreenshot] = useState(null);
   const [loadingBuy, setLoadingBuy] = useState(false);
   const [hasBankDetails, setHasBankDetails] = useState(false);
+  const [bankDetails, setBankDetails] = useState(null);
   const [userDetailsh, setUserDetailsh] = useState();
   const [goldRate, setGoldRate] = useState(0);
   const presetAmounts = [5, 10, 15, 20];
@@ -23,10 +25,11 @@ const sellPages = () => {
   const summaryRef = useRef(null);
   const uploadRef = useRef(null);
   const email = localStorage.getItem("userEmail");
+  const navigate = useNavigate();
 
   const handleContinue = () => {
-    if (amount < 5) {
-      alert("You must buy atleast 10 Coins to proceed");
+    if (amount < 1) {
+      alert("You must sell at least 1 coin to proceed");
       return;
     }
     setLoadingBuy(true);
@@ -36,56 +39,78 @@ const sellPages = () => {
       setShowSummary(true);
       setShowUploadSection(false);
       setLoadingBuy(false);
-    }, 1000);
+    }, 800);
   };
 
+  // fetch current coin/gold rate
   useEffect(() => {
     const fetchCoinValue = async () => {
       try {
         const res = await CoinsValue();
-        console.log("API Coin Value Response:", res);
-
         if (Array.isArray(res) && res.length > 0) {
           const user = res[0];
-          setGoldRate(parseFloat(user.Coinvalue)); // ✅ correct way
+          setGoldRate(parseFloat(user.Coinvalue) || 0);
         }
       } catch (err) {
-        console.error("❌ Failed to fetch Coin value:", err);
+        console.error("Failed to fetch coin value:", err);
       }
     };
-
     fetchCoinValue();
   }, []);
 
+  // fetch bank details for this user and normalize
   useEffect(() => {
     const fetchBankDetailsh = async () => {
       try {
+        if (!email) {
+          setHasBankDetails(false);
+          return;
+        }
         const res = await bankDetailshShowAPI(email);
-        console.log("API Bank Response:", res); // full array
+        // res might be an array or object or model instance
+        let record = null;
+        if (Array.isArray(res) && res.length > 0) record = res[0];
+        else if (res && typeof res === "object") record = res;
 
-        // Check if array and has required fields in first item
         if (
-          Array.isArray(res) &&
-          res.length > 0 &&
-          res[0].Accountnumber &&
-          res[0].IFSC &&
-          res[0].Branch &&
-          res[0].Accountholder
+          record &&
+          (record.Accountnumber || record.accountNumber) &&
+          (record.IFSC || record.ifsc) &&
+          (record.Branch || record.branch) &&
+          (record.Accountholder ||
+            record.accountHolder ||
+            record.Accountholder === "")
         ) {
+          const normalized = {
+            accountNumber: record.Accountnumber ?? record.accountNumber ?? "",
+            ifsc: record.IFSC ?? record.ifsc ?? "",
+            branch: record.Branch ?? record.branch ?? "",
+            accountHolder:
+              record.Accountholder ??
+              record.accountHolder ??
+              record.Accountholder ??
+              "",
+            bankName: record.BankName ?? record.bankName ?? "",
+            phone: record.Phone ?? record.phone ?? "",
+            email: record.Email ?? record.email ?? "",
+          };
+          setBankDetails(normalized);
           setHasBankDetails(true);
-          console.log("✅ Bank details found:", res[0]);
+          console.log("Bank details loaded:", normalized);
         } else {
           setHasBankDetails(false);
-          console.warn("⚠️ Incomplete or missing bank details.");
+          setBankDetails(null);
+          console.warn("No complete bank details found.");
         }
       } catch (err) {
-        console.error("❌ Failed to fetch bank details:", err);
+        console.error("Failed to fetch bank details:", err);
         setHasBankDetails(false);
+        setBankDetails(null);
       }
     };
 
-    fetchBankDetailsh(); // ✅ fixed function name
-  }, []);
+    fetchBankDetailsh();
+  }, [email]);
 
   useEffect(() => {
     if (showSummary && summaryRef.current) {
@@ -112,23 +137,24 @@ const sellPages = () => {
       />
     </svg>
   );
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
+
+  const convertToBase64 = (file) =>
+    new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
-        const base64String = reader.result.split(",")[1]; // remove `data:image/...;base64,`
+        const base64String = reader.result.split(",")[1] || "";
         resolve(base64String);
       };
       reader.onerror = (error) => reject(error);
     });
-  };
 
+  // submit: use fetched bank details instead of hard-coded values
   const handlesubmit = async () => {
     const currentDate = new Date().toISOString();
 
-    if (!hasBankDetails) {
-      alert("First Add Bank Details");
+    if (!hasBankDetails || !bankDetails) {
+      alert("First add bank details");
       return;
     }
 
@@ -143,29 +169,28 @@ const sellPages = () => {
         imageBase64 = await convertToBase64(screenshot);
       }
 
-      // 1. Call the transaction history API
+      // Use bankDetails values here
       await TransactionHistory(
         totalAmount,
         "Sell Gold Coin",
         "Sell",
         "Pending",
         currentDate,
-        "0000000000",
-        "IFSC000000",
-        "VKT Digital Branch",
+        bankDetails.accountNumber,
+        bankDetails.ifsc,
+        bankDetails.branch,
         imageBase64,
         amount,
         email
       );
 
       await CoinsUpdate("sell", amount, email);
-      // 4. Success logic
-      alert("✅ Coins Sold Successfully");
+
+      alert("✅ Coins sold successfully");
     } catch (err) {
       console.error("Transaction submit error:", err);
       alert("❌ Failed to submit transaction.");
     } finally {
-      // ✅ This will ALWAYS run after try/catch
       setShowUploadSection(false);
       setShowSummary(false);
       setUtrId("");
@@ -174,19 +199,14 @@ const sellPages = () => {
     }
   };
 
+  // fetch user password for verification
   useEffect(() => {
-    const email = localStorage.getItem("userEmail");
-
     const fetchPassword = async () => {
       try {
+        if (!email) return;
         const res = await getCustomerData(email);
-        console.log("API Raw Response:", res); // ← this will log the array
-
         if (Array.isArray(res) && res.length > 0 && res[0].Password) {
           setUserDetailsh({ password: res[0].Password });
-          console.log("Fetched password:", res[0].Password); // ← now this will work
-        } else {
-          console.warn("Password not found in API response.");
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -194,7 +214,7 @@ const sellPages = () => {
     };
 
     fetchPassword();
-  }, []);
+  }, [email]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 animate-slide-bounce">
@@ -213,11 +233,9 @@ const sellPages = () => {
             <div className="text-5xl font-bold mb-2">
               <input
                 type="number"
-                min="10"
+                min="1"
                 value={amount}
-                onChange={(e) => {
-                  setAmount(Number(e.target.value));
-                }}
+                onChange={(e) => setAmount(Number(e.target.value))}
                 className="text-center text-[30px] text-gray-700 bg-white border border-gray-300 rounded-md px-2 py-1 w-[150px] focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
@@ -286,7 +304,7 @@ const sellPages = () => {
               Sell Summary
             </h2>
             <div className="text-lg text-gray-800 mb-2">
-              You are buying <span className="font-semibold">{amount}</span>{" "}
+              You are selling <span className="font-semibold">{amount}</span>{" "}
               Gold Coins
             </div>
             <div className="text-lg text-blue-900 font-bold mb-4">
@@ -302,9 +320,7 @@ const sellPages = () => {
             <div className="flex gap-4">
               <button
                 className="bg-green-600 hover:bg-green-700 transition duration-300 text-white px-4 py-2 rounded-lg font-semibold"
-                onClick={() => {
-                  setShowUploadSection(true);
-                }}
+                onClick={() => setShowUploadSection(true)}
               >
                 Sell Coin
               </button>
@@ -351,9 +367,19 @@ const sellPages = () => {
               className="mb-10 px-4 py-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
 
+            <label className="mb-2 text-gray-600 font-medium">
+              Upload Screenshot (optional)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setScreenshot(e.target.files?.[0] ?? null)}
+              className="mb-6"
+            />
+
             <button
               onClick={() => handlesubmit()}
-              className="mt-10 w-full bg-blue-500 hover:bg-blue-600 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
+              className="mt-4 w-full bg-blue-500 hover:bg-blue-600 transition ease-in-out duration-300 text-white py-3 rounded-full font-semibold text-lg"
             >
               Submit Details
             </button>
@@ -364,4 +390,4 @@ const sellPages = () => {
   );
 };
 
-export default sellPages;
+export default SellPages;
